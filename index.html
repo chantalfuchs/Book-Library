@@ -1,0 +1,1595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#FBF8F1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="description" content="Book Library – your personal reading library">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Book Library">
+<title>Book Library</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+SC:wght@500;600;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      cream: '#F6F1E6', paper: '#FDFBF6', parchment: '#E4D8BF', caramel: '#A8863F', caramelDark: '#7D5F2A',
+      forest: '#24402F', forestDark: '#172C1F', gold: '#B8933F', wood: '#5A4433', ink: '#231912', navy: '#24402F', marble: '#ECE6DA', rouge: '#7A2232', teal: '#3B5E46', wine: '#7A2232'
+    },
+    fontFamily: { display: ['"Cormorant Garamond"', 'Georgia', 'serif'], caps: ['"Cormorant SC"', '"Cormorant Garamond"', 'serif'], sans: ['"EB Garamond"', 'Georgia', 'serif'] },
+    boxShadow: {
+      card: '0 1px 0 rgba(255,255,255,.8) inset, 0 1px 2px rgba(50,30,15,.08), 0 10px 24px -14px rgba(50,30,15,.30)',
+      lift: '0 2px 4px rgba(50,30,15,.10), 0 22px 38px -18px rgba(50,30,15,.45)'
+    }
+  } }
+};
+</script>
+<style type="text/tailwindcss">
+@layer components {
+  .card { @apply bg-paper rounded-[3px] border border-parchment shadow-card relative; }
+  .card-framed { @apply card; outline: 1px solid rgba(184,147,63,.35); outline-offset: -6px; }
+  .field { @apply w-full rounded-[2px] border border-[#D9CBAE] bg-paper px-3.5 py-2.5 text-[16px] text-ink placeholder:text-stone-400 placeholder:italic focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition; }
+  .btn { @apply inline-flex items-center justify-center gap-1.5 rounded-[2px] px-4 py-2 text-[13px] font-caps tracking-[.12em] transition active:scale-[.98] disabled:opacity-50 disabled:pointer-events-none select-none border; }
+  .btn-primary { @apply btn bg-forest text-[#F3E6C4] border-forest hover:bg-forestDark shadow-sm; }
+  .btn-gold { @apply btn bg-gold text-ink border-gold hover:brightness-105; }
+  .btn-soft { @apply btn bg-transparent text-forest border-gold/60 hover:bg-gold/10 hover:border-gold; }
+  .btn-ghost { @apply btn border-transparent text-wood hover:bg-parchment/50; }
+  .chip { @apply inline-flex items-center gap-1.5 rounded-[2px] px-3 py-1.5 text-[13px] font-caps tracking-[.1em] whitespace-nowrap transition border; }
+  .chip-on { @apply bg-forest text-[#F3E6C4] border-forest; }
+  .chip-off { @apply bg-paper text-wood border-[#D9CBAE] hover:border-gold; }
+  .label { @apply block font-caps text-[13px] tracking-[.18em] text-caramelDark mb-1.5; }
+  .section-title { @apply font-display text-[26px] font-medium text-ink flex items-center gap-3 leading-tight; }
+}
+</style>
+<style>
+  html { -webkit-text-size-adjust: 100%; }
+  html { font-size: 17px; }
+  body {
+    margin: 0; color: #231912; font-family: 'EB Garamond', Georgia, serif;
+    background-color: #F6F1E6;
+    background-image:
+      radial-gradient(1100px 520px at 50% -8%, rgba(255,250,235,.95), transparent 70%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M32 0 64 32 32 64 0 32Z' fill='none' stroke='%23B8933F' stroke-opacity='.10'/%3E%3Cpath d='M32 22 42 32 32 42 22 32Z' fill='%23263244' fill-opacity='.035'/%3E%3C/svg%3E");
+    -webkit-tap-highlight-color: transparent;
+  }
+  .gilt-rule { height: 7px; background:
+      linear-gradient(#B8933F,#B8933F) top/100% 1px no-repeat,
+      linear-gradient(rgba(122,34,50,.6),rgba(122,34,50,.6)) center/100% 1px no-repeat,
+      linear-gradient(#B8933F,#B8933F) bottom/100% 1px no-repeat; opacity: .8; }
+  .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { scrollbar-width: none; }
+  @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes sheetIn { from { transform: translateY(24px); opacity: .4; } to { transform: none; opacity: 1; } }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes shimmer { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+  @keyframes flicker { 0%,100% { opacity: .85; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
+  @keyframes floaty { 0%,100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-5px) rotate(4deg); } }
+  .rise { animation: rise .35s ease both; }
+  .sheet-in { animation: sheetIn .28s cubic-bezier(.2,.8,.2,1) both; }
+  .fade-in { animation: fadeIn .2s ease both; }
+  .skeleton { background: linear-gradient(90deg, #F1E6D2 0, #F8F0E1 50%, #F1E6D2 100%); background-size: 800px 100%; animation: shimmer 1.4s linear infinite; }
+  input[type=number]::-webkit-inner-spin-button { opacity: .4; }
+  @media (prefers-reduced-motion: reduce) { .rise, .sheet-in, .fade-in, .skeleton { animation: none !important; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+</head>
+<body>
+<div id="root">
+  <div style="min-height:100vh;display:grid;place-items:center;font-family:Georgia,serif;letter-spacing:.2em;color:#24402F">BOOK LIBRARY</div>
+</div>
+<script>
+(function () {
+'use strict';
+const { useState, useEffect, useMemo, useRef, useCallback } = React;
+const html = htm.bind(React.createElement);
+
+/* ───────────────────────── helpers ───────────────────────── */
+const LS_KEY = 'booklibrary.v1';
+const loadLocal = () => { try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch (e) { return {}; } };
+const saveLocal = (d) => { try { localStorage.setItem(LS_KEY, JSON.stringify(d)); } catch (e) {} };
+const newId = () => 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const todayISO = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const clean = (o) => JSON.parse(JSON.stringify(o));
+const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, ' ').trim();
+const fmtDate = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso.length === 10 ? iso + 'T12:00:00' : iso);
+  return isNaN(d) ? '' : d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+const getCap = async (name) => {
+  try { return window.claude && typeof window.claude.use === 'function' ? await window.claude.use(name) : null; }
+  catch (e) { return null; }
+};
+const cx = (...a) => a.filter(Boolean).join(' ');
+
+const STATUS = {
+  tbr:      { label: 'To Be Read',        short: 'TBR',      badge: 'bg-[#FBF5E6]/95 text-[#7D5F2A] ring-1 ring-[#B8933F]/70' },
+  reading:  { label: 'Currently Reading', short: 'Reading',  badge: 'bg-[#24402F]/92 text-[#F1E3BE] ring-1 ring-[#B8933F]/60' },
+  finished: { label: 'Finished',          short: 'Finished', badge: 'bg-[#7A2232]/92 text-[#F1E3BE] ring-1 ring-[#B8933F]/60' },
+};
+const FEELINGS = [['loved', 'Loved it'], ['liked', 'Liked it'], ['okay', 'Okay'], ['notforme', 'Not for me']];
+const PRIOS = [['high', 'High'], ['medium', 'Medium'], ['low', 'Low']];
+const PRIO_RANK = { high: 0, medium: 1, low: 2, '': 3 };
+
+const MOODS = [['cozy', 'Cozy'], ['philosophical', 'Philosophical'], ['dark', 'Dark & Twisty'], ['classics', 'Classics'], ['science', 'Science'], ['quick', 'Quick Read']];
+const MOOD_CLS = {
+  cozy: 'bg-[#F4E6C8] text-[#7D5F2A] border-[#D7BC82]', philosophical: 'bg-[#E3EADF] text-[#24402F] border-[#9DB29E]',
+  dark: 'bg-[#7A2232] text-[#F6E7D2] border-[#7A2232]', classics: 'bg-[#24402F] text-[#F1E3BE] border-[#24402F]',
+  science: 'bg-[#FBF5E6] text-[#24402F] border-[#24402F]/50', quick: 'bg-[#F3E0E1] text-[#7A2232] border-[#C9959C]',
+};
+const isFitzek = (b) => norm(b.author).includes('fitzek');
+const isShort = (b) => +b.pages > 0 && +b.pages <= 250;
+const DEFAULT_COLS = [
+  { id: 'fitzek', name: 'Fitzek Collection', sub: 'Psychothriller in reading order', ordered: true },
+  { id: 'mustread', name: 'Must Read', sub: 'Classics & landmark books' },
+];
+const getCols = (settings) => (Array.isArray(settings && settings.collections) ? settings.collections : DEFAULT_COLS);
+// Books without an explicit list fall back to the original rules (Fitzek by author, Must Read flag).
+const colsOf = (b) => (Array.isArray(b.collections) ? b.collections : [isFitzek(b) && 'fitzek', b.mustRead && 'mustread'].filter(Boolean));
+const inCol = (b, id) => colsOf(b).includes(id);
+const toggleCol = (cur, id) => { const c = new Set(colsOf(cur)); if (c.has(id)) c.delete(id); else c.add(id); return { ...cur, collections: [...c] }; };
+const COL_TONES = ['bg-[#7A2232] text-[#F6E7D2]', 'bg-[#24402F] text-[#F1E3BE]', 'bg-[#5A3A1E] text-[#F3E6C4]'];
+const moodsOf = (b) => { const m = new Set(Array.isArray(b.moods) ? b.moods : []); if (isShort(b)) m.add('quick'); return m; };
+
+/* Curated starter wishlist: titles and authors as given by the reader; the moods, Must Read
+   flags and the Fitzek reading order are curated tags you can change in each book's details.
+   Covers, years, pages and summaries are only filled in from Open Library, never invented. */
+const SEED_CATS = { P: 'Philosophy & remarkable novels', W: 'World literature & classics', F: 'Psychothriller', S: 'Science fiction & science', M: 'Psychological suspense & mystery' };
+const SEED_RAW = [
+  ['Die Mitternachtsbibliothek', 'Matt Haig', 'P', 'cozy philosophical', 0, 'The Midnight Library'],
+  ['Siddhartha', 'Hermann Hesse', 'P', 'philosophical classics quick', 1, ''],
+  ['Der kleine Prinz', 'Antoine de Saint-Exupéry', 'P', 'cozy philosophical classics quick', 1, 'The Little Prince|Le Petit Prince'],
+  ['Die unerträgliche Leichtigkeit des Seins', 'Milan Kundera', 'P', 'philosophical classics', 1, 'The Unbearable Lightness of Being'],
+  ['Dienstags bei Morrie', 'Mitch Albom', 'P', 'cozy philosophical quick', 0, 'Tuesdays with Morrie'],
+  ['Die Verwandlung', 'Franz Kafka', 'P', 'philosophical classics dark quick', 1, 'The Metamorphosis'],
+  ['Schuld und Sühne', 'Fjodor Dostojewski', 'W', 'classics philosophical dark', 1, 'Crime and Punishment|Verbrechen und Strafe'],
+  ['1984', 'George Orwell', 'W', 'classics dark', 1, 'Nineteen Eighty-Four'],
+  ['Stolz und Vorurteil', 'Jane Austen', 'W', 'classics cozy', 1, 'Pride and Prejudice'],
+  ['Der Prozess', 'Franz Kafka', 'W', 'classics philosophical dark', 1, 'The Trial|Der Process'],
+  ['Der Fremde', 'Albert Camus', 'W', 'classics philosophical quick', 1, "The Stranger|The Outsider|L'Étranger"],
+  ['Wer die Nachtigall stört', 'Harper Lee', 'W', 'classics', 1, 'To Kill a Mockingbird'],
+  ['Der grosse Gatsby', 'F. Scott Fitzgerald', 'W', 'classics quick', 1, 'The Great Gatsby|Der große Gatsby'],
+  ['Frankenstein', 'Mary Shelley', 'W', 'classics dark', 1, ''],
+  ['Der Graf von Monte Christo', 'Alexandre Dumas', 'W', 'classics', 1, 'The Count of Monte Cristo|Der Graf von Monte Cristo'],
+  ['Die Brüder Karamasow', 'Fjodor Dostojewski', 'W', 'classics philosophical', 1, 'The Brothers Karamazov'],
+  ['Jane Eyre', 'Charlotte Brontë', 'W', 'classics', 1, ''],
+  ['Schöne neue Welt', 'Aldous Huxley', 'W', 'classics dark', 1, 'Brave New World'],
+  ['Der Herr der Fliegen', 'William Golding', 'W', 'classics dark', 1, 'Lord of the Flies'],
+  ['Die Pest', 'Albert Camus', 'W', 'classics philosophical', 1, 'The Plague|La Peste'],
+  ['Die Therapie', 'Sebastian Fitzek', 'F', 'dark', 0, '', 1],
+  ['Das Kind', 'Sebastian Fitzek', 'F', 'dark', 0, '', 2],
+  ['Der Seelenbrecher', 'Sebastian Fitzek', 'F', 'dark', 0, '', 3],
+  ['Der Augensammler', 'Sebastian Fitzek', 'F', 'dark', 0, '', 4],
+  ['Der Augenjäger', 'Sebastian Fitzek', 'F', 'dark', 0, '', 5, 'Der Augensammler'],
+  ['Der Nachtwandler', 'Sebastian Fitzek', 'F', 'dark', 0, '', 6],
+  ['Passagier 23', 'Sebastian Fitzek', 'F', 'dark', 0, '', 7],
+  ['Das Paket', 'Sebastian Fitzek', 'F', 'dark', 0, '', 8],
+  ['Flugangst 7A', 'Sebastian Fitzek', 'F', 'dark', 0, '', 9],
+  ['Der Insasse', 'Sebastian Fitzek', 'F', 'dark', 0, '', 10],
+  ['Der Heimweg', 'Sebastian Fitzek', 'F', 'dark', 0, '', 11],
+  ['Playlist', 'Sebastian Fitzek', 'F', 'dark', 0, '', 12, 'Der Augenjäger'],
+  ['Mimik', 'Sebastian Fitzek', 'F', 'dark', 0, '', 13],
+  ['Die Einladung', 'Sebastian Fitzek', 'F', 'dark', 0, '', 14],
+  ['Das Kalendermädchen', 'Sebastian Fitzek', 'F', 'dark', 0, '', 15],
+  ['Der Astronaut', 'Andy Weir', 'S', 'science', 0, 'Project Hail Mary'],
+  ['Der Marsianer', 'Andy Weir', 'S', 'science', 0, 'The Martian'],
+  ['Die drei Sonnen', 'Cixin Liu', 'S', 'science', 0, 'The Three-Body Problem'],
+  ['Eine kurze Geschichte der Zeit', 'Stephen Hawking', 'S', 'science', 1, 'A Brief History of Time'],
+  ['Cosmos', 'Carl Sagan', 'S', 'science', 0, 'Unser Kosmos'],
+  ['Eine kurze Geschichte von fast allem', 'Bill Bryson', 'S', 'science cozy', 0, 'A Short History of Nearly Everything'],
+  ['Flowers for Algernon', 'Daniel Keyes', 'S', 'science philosophical classics', 1, 'Blumen für Algernon'],
+  ['Dune', 'Frank Herbert', 'S', 'science classics', 1, 'Dune – Der Wüstenplanet|Der Wüstenplanet'],
+  ['Per Anhalter durch die Galaxis', 'Douglas Adams', 'S', 'science cozy quick', 1, "The Hitchhiker's Guide to the Galaxy"],
+  ['Gone Girl', 'Gillian Flynn', 'M', 'dark', 0, ''],
+  ['Die stumme Patientin', 'Alex Michaelides', 'M', 'dark', 0, 'The Silent Patient'],
+  ['Shutter Island', 'Dennis Lehane', 'M', 'dark', 0, ''],
+  ['Verity', 'Colleen Hoover', 'M', 'dark', 0, ''],
+  ["Und dann gab's keines mehr", 'Agatha Christie', 'M', 'dark classics', 1, 'And Then There Were None|Und dann gabs keines mehr'],
+  ['Mord im Orient-Express', 'Agatha Christie', 'M', 'classics cozy', 1, 'Murder on the Orient Express'],
+  ['Der Alchimist', 'Paulo Coelho', 'P', 'philosophical quick', 0, 'The Alchemist|O Alquimista', 0, '', 'finished'],
+];
+const seedId = (t) => 'seed-' + norm(t).replace(/ /g, '-').slice(0, 50);
+const SEED_BOOKS = SEED_RAW.map(([title, author, cat, moods, must, alt, order, prev, status]) => ({
+  key: seedId(title), id: seedId(title), title, alt: alt ? alt.split('|') : [],
+  book: { id: seedId(title), seedKey: seedId(title), title, author, genres: [SEED_CATS[cat]], moods: moods.split(' '), mustRead: !!must,
+    altTitles: alt ? alt.split('|') : [], seriesOrder: order ? String(order) : '', seriesPrev: prev ? seedId(prev) : '', status: status || 'tbr', owned: status === 'finished' },
+}));
+
+/* What should I read next? — scores TBR books by how you rated finished books with the same
+   moods, genres and authors, plus your priorities. */
+function suggestNext(books, avoidId) {
+  const tbr = books.filter((b) => b.status === 'tbr');
+  if (!tbr.length) return null;
+  const finishedIds = new Set(books.filter((b) => b.status === 'finished').map((b) => b.id));
+  const byId = new Map(books.map((b) => [b.id, b]));
+  const tags = (b) => [...(b.genres || []).map((g) => 'g:' + g), ...[...moodsOf(b)].map((m) => 'm:' + m), b.author ? 'a:' + norm(b.author) : null].filter(Boolean);
+  const label = (t) => t.startsWith('m:') ? (MOODS.find((m) => m[0] === t.slice(2)) || [])[1] + ' books'
+    : t.startsWith('g:') ? t.slice(2) : 'books by ' + ((books.find((b) => 'a:' + norm(b.author) === t) || {}).author || 'this author');
+  const rated = books.filter((b) => b.status === 'finished' && b.rating > 0);
+  const w = {};
+  rated.forEach((b) => tags(b).forEach((t) => { w[t] = (w[t] || 0) + (b.rating - 3); }));
+  let best = null;
+  tbr.forEach((b) => {
+    let score = 0, top = null;
+    tags(b).forEach((t) => { const v = w[t] || 0; score += v; if (v > 0 && (!top || v > (w[top] || 0))) top = t; });
+    score += { high: 2, medium: 1, low: 0.3 }[b.priority] || 0;
+    if (b.nextUp) score += 2.5;
+    if (b.seriesPrev && byId.has(b.seriesPrev) && !finishedIds.has(b.seriesPrev)) score -= 6;
+    if (b.id === avoidId) score -= 50;
+    score += Math.random() * 0.6;
+    if (!best || score > best.score) best = { book: b, score, top };
+  });
+  const b = best.book;
+  let reason;
+  if (best.top) reason = 'You rate ' + label(best.top) + ' highly — this one fits.';
+  else if (b.nextUp) reason = 'You marked it as next up.';
+  else if (b.priority === 'high') reason = 'It is one of your high-priority books.';
+  else if (!rated.length) reason = 'Rate a few finished books and the suggestions become personal.';
+  else reason = 'A good change of pace from your recent reads.';
+  return { book: b, reason };
+}
+
+/* Open Library lookup for missing details: fills only empty fields, never overwrites. */
+const lastName = (a) => { const p = String(a || '').split(',')[0].trim().split(/\s+/); return p[p.length - 1] || ''; };
+async function lookupOpenLibrary(b) {
+  const fields = 'key,title,author_name,first_publish_year,cover_i,subject,number_of_pages_median';
+  const ln = norm(lastName(b.author));
+  const titles = [b.title, ...(Array.isArray(b.altTitles) ? b.altTitles : [])].slice(0, 3);
+  for (const t of titles) {
+    const r = await withTimeout('https://openlibrary.org/search.json?limit=6&lang=de&fields=' + fields + '&title=' + encodeURIComponent(t) + (ln ? '&author=' + encodeURIComponent(lastName(b.author)) : ''), 10000);
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    const doc = (j.docs || []).find((d) => !ln || (d.author_name || []).some((a) => norm(a).includes(ln)));
+    if (doc) return doc;
+  }
+  return null;
+}
+
+
+const makeBook = (p = {}) => ({
+  id: newId(), title: '', author: '', cover: '', coverUrl: '', year: '', genres: [], status: 'tbr', rating: 0,
+  feeling: '', description: '', descriptionSource: '', notes: '', favorite: false, priority: '', nextUp: false,
+  addedAt: new Date().toISOString(), startedAt: '', finishedAt: '', pages: '', currentPage: '', language: '', olKey: '',
+  moods: [], mustRead: false, seriesOrder: '', seriesPrev: '', altTitles: [], seedKey: '', enrich: '',
+  ...p,
+});
+// Wishlist vs. My Library: a book counts as owned once you add it to the library ("Bought").
+// Older entries without the flag: starter-wishlist books on TBR are wishlist, everything else is owned.
+const isOwned = (b) => (typeof b.owned === 'boolean' ? b.owned : !(b.seedKey && b.status === 'tbr'));
+const inLibrary = (b) => b.status !== 'tbr' || isOwned(b);
+const onWishlist = (b) => !inLibrary(b);
+const WISH_BADGE = 'bg-[#FBF5E6]/95 text-[#7A2232] ring-1 ring-[#7A2232]/50';
+function withStatus(b, status) {
+  const n = { ...b, status };
+  if (status === 'tbr' && b.status !== 'tbr' && typeof b.owned !== 'boolean') n.owned = true;
+  if (status === 'finished') { if (!n.finishedAt) n.finishedAt = todayISO(); if (n.pages) n.currentPage = n.pages; n.nextUp = false; }
+  else n.finishedAt = '';
+  if (status === 'reading') { if (!n.startedAt) n.startedAt = todayISO(); n.nextUp = false; }
+  return n;
+}
+
+function fileToCover(file) {
+  return new Promise((res, rej) => {
+    if (!file || !/^image\//.test(file.type)) return rej(new Error('Not an image'));
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const s = Math.min(1, 360 / img.width);
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      res(c.toDataURL('image/jpeg', 0.78));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error('Could not read image')); };
+    img.src = url;
+  });
+}
+
+/* ───────────────────────── book search ───────────────────────── */
+const LANGS = { eng: 'English', ger: 'German', fre: 'French', spa: 'Spanish', ita: 'Italian', por: 'Portuguese', dut: 'Dutch', jpn: 'Japanese', rus: 'Russian', chi: 'Chinese', swe: 'Swedish', nor: 'Norwegian', dan: 'Danish', pol: 'Polish', tur: 'Turkish' };
+const GENRES = ['Fantasy', 'Science fiction', 'Romance', 'Mystery', 'Thriller', 'Horror', 'Historical fiction', 'Young adult', 'Classics', 'Poetry', 'Biography', 'Memoir', 'Mythology', 'Philosophy', 'Self-help', 'Psychology', 'Adventure', 'Crime', 'Dystopia', 'Humor', 'History', 'Spirituality', 'Business', 'Science', 'Travel', 'Fiction'];
+function pickGenres(subs) {
+  if (!Array.isArray(subs)) return [];
+  const low = subs.map((s) => String(s).toLowerCase());
+  const out = [];
+  for (const g of GENRES) {
+    const gl = g.toLowerCase();
+    if (low.some((s) => s === gl || s.includes(gl))) out.push(g);
+    if (out.length >= 3) break;
+  }
+  return out;
+}
+async function withTimeout(url, ms) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), ms);
+  try { return await fetch(url, { signal: ctrl.signal }); } finally { clearTimeout(t); }
+}
+async function searchOpenLibrary(q) {
+  const fields = 'key,title,author_name,first_publish_year,cover_i,subject,number_of_pages_median,language';
+  const r = await withTimeout('https://openlibrary.org/search.json?limit=16&fields=' + fields + '&q=' + encodeURIComponent(q), 8000);
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const j = await r.json();
+  return (j.docs || []).filter((d) => d.title).map((d) => ({
+    source: 'openlibrary', olKey: d.key || '', title: d.title,
+    author: (d.author_name || []).slice(0, 2).join(', '),
+    year: d.first_publish_year ? String(d.first_publish_year) : '',
+    coverUrl: d.cover_i ? 'https://covers.openlibrary.org/b/id/' + d.cover_i + '-M.jpg' : '',
+    genres: pickGenres(d.subject), pages: d.number_of_pages_median ? String(d.number_of_pages_median) : '',
+    language: Array.isArray(d.language) && d.language.length === 1 ? (LANGS[d.language[0]] || '') : '',
+    description: null,
+  }));
+}
+async function fetchOLDescription(key) {
+  if (!key) return '';
+  try {
+    const r = await withTimeout('https://openlibrary.org' + key + '.json', 8000);
+    if (!r.ok) return '';
+    const j = await r.json();
+    let d = j.description;
+    if (d && typeof d === 'object') d = d.value;
+    if (typeof d !== 'string') return '';
+    d = d.split(/\n\s*-{3,}|\n\s*\*{3,}|\(\[source\]/)[0];
+    return d.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\r/g, '').trim();
+  } catch (e) { return ''; }
+}
+async function searchClaude(sample, q) {
+  const prompt = `You help a reader find books for their personal reading list. Their search: "${q.replace(/"/g, "'")}"
+Return ONLY a JSON array (no prose, no code fences) of up to 8 real, published books that match this search by title or by author.
+Each item: {"title": string, "author": string, "year": number|null (first publication year), "genres": string[] (max 3, e.g. "Fantasy"), "pages": number|null, "language": string|null (original language), "summary": string}.
+Rules: include only books you are confident really exist. If you are unsure about any field, use null (or "" for summary). The summary is 2–3 neutral sentences about the premise, no spoilers. Never invent books or details. If nothing matches, return [].`;
+  const res = await sample(prompt, { modelTier: 'default' });
+  const txt = (res && res.text) || '';
+  const m = txt.match(/\[[\s\S]*\]/);
+  if (!m) throw new Error('parse');
+  const arr = JSON.parse(m[0]);
+  const num = (v) => (v !== null && v !== '' && Number.isFinite(+v) && +v > 0 ? String(Math.round(+v)) : '');
+  return arr.filter((x) => x && x.title).slice(0, 8).map((x) => ({
+    source: 'claude', olKey: '', coverUrl: '', title: String(x.title), author: String(x.author || ''),
+    year: num(x.year), pages: num(x.pages), language: x.language ? String(x.language) : '',
+    genres: Array.isArray(x.genres) ? x.genres.slice(0, 3).map(String) : [],
+    description: typeof x.summary === 'string' ? x.summary.trim() : '',
+  }));
+}
+
+/* ───────────────────────── storage hook ───────────────────────── */
+function useLibrary(toast) {
+  const init = useMemo(loadLocal, []);
+  const [books, setBooksState] = useState(Array.isArray(init.books) ? init.books : []);
+  const [settings, setSettings] = useState({ goal: 12, ...(init.settings || {}) });
+  const [sync, setSync] = useState('connecting');
+  const booksRef = useRef(books);
+  const settingsRef = useRef(settings);
+  const dbRef = useRef(null);
+  const queues = useRef({});
+  const setBooks = (n) => { booksRef.current = n; setBooksState(n); };
+  const seedFn = useRef(() => {});
+  const seeded = useRef(false);
+
+  useEffect(() => { saveLocal({ books, settings }); }, [books, settings]);
+
+  const enqueue = (key, fn) => {
+    const q = queues.current;
+    q[key] = (q[key] || Promise.resolve()).then(fn).catch((e) => {
+      if (e && e.code === 'quota_exceeded') toast('Your library storage is full — export a backup and remove some cover images.', 'error');
+      else if (e && e.code === 'revoked') { dbRef.current = null; setSync('local'); }
+    });
+  };
+  const pushBook = (b) => { const r = dbRef.current; if (r) enqueue(b.id, () => r.col.doc(b.id).set(clean(b))); };
+  const dropBook = (id) => { const r = dbRef.current; if (r) enqueue(id, () => r.col.doc(id).delete()); };
+
+  useEffect(() => {
+    let alive = true, unsub = null, timer = null;
+    (async () => {
+      const db = await getCap('db');
+      const user = db ? await getCap('user') : null;
+      const uid = user ? await user.id() : null;
+      if (!alive) return;
+      if (!db || !uid) { setSync('local'); seedFn.current(); return; }
+      let col, sdoc;
+      try {
+        col = db.doc('data/users/' + uid + '/library').collection('books');
+        sdoc = db.doc('data/users/' + uid + '/settings');
+      } catch (e) { setSync('local'); seedFn.current(); return; }
+      dbRef.current = { col, sdoc };
+      try {
+        const s = await Promise.race([sdoc.get(), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 8000))]);
+        if (alive && s.exists) { const n = { ...settingsRef.current, ...s.data() }; settingsRef.current = n; setSettings(n); }
+      } catch (e) {}
+      if (!alive) return;
+      timer = setTimeout(() => { if (alive) setSync((s) => (s === 'connecting' ? 'slow' : s)); }, 10000);
+      let settled = false;
+      unsub = col.onSnapshot((snap) => {
+        if (!alive) return;
+        const docs = snap.docs.map((d) => ({ ...d.data(), id: d.id }));
+        if (!snap.metadata.fromCache && !settled) {
+          settled = true; clearTimeout(timer); setSync('cloud');
+          if (snap.empty && booksRef.current.length) { booksRef.current.forEach(pushBook); seedFn.current(); return; }
+          setBooks(docs); seedFn.current(); return;
+        }
+        if (settled || !snap.empty) setBooks(docs);
+      }, () => { clearTimeout(timer); if (alive) { dbRef.current = null; setSync('local'); seedFn.current(); } });
+    })();
+    return () => { alive = false; if (unsub) unsub(); clearTimeout(timer); };
+  }, []);
+
+  const upsert = useCallback((b) => {
+    const prev = booksRef.current;
+    const i = prev.findIndex((x) => x.id === b.id);
+    const n = i < 0 ? [b, ...prev] : prev.map((x, j) => (j === i ? b : x));
+    setBooks(n); pushBook(b);
+  }, []);
+  const update = useCallback((id, patch) => {
+    const cur = booksRef.current.find((b) => b.id === id);
+    if (!cur) return;
+    upsert(typeof patch === 'function' ? patch(cur) : { ...cur, ...patch });
+  }, []);
+  const remove = useCallback((id) => { setBooks(booksRef.current.filter((b) => b.id !== id)); dropBook(id); }, []);
+  const saveSettings = useCallback((patch) => {
+    const n = { ...settingsRef.current, ...patch };
+    settingsRef.current = n; setSettings(n);
+    const r = dbRef.current; if (r) enqueue('__settings', () => r.sdoc.set(clean(n)));
+  }, []);
+  const importBooks = useCallback((arr, mode, settingsIn) => {
+    const incoming = arr.filter((x) => x && typeof x.title === 'string' && x.title.trim()).map((x) => {
+      const b = makeBook({ ...x, id: typeof x.id === 'string' && /^[A-Za-z0-9_\-]{1,60}$/.test(x.id) ? x.id : newId() });
+      b.genres = Array.isArray(b.genres) ? b.genres.map(String) : [];
+      b.status = STATUS[b.status] ? b.status : 'tbr';
+      b.rating = Math.max(0, Math.min(5, Math.round(+b.rating || 0)));
+      return b;
+    });
+    let next;
+    if (mode === 'replace') {
+      const keep = new Set(incoming.map((b) => b.id));
+      booksRef.current.forEach((b) => { if (!keep.has(b.id)) dropBook(b.id); });
+      next = incoming;
+    } else {
+      const m = new Map(booksRef.current.map((b) => [b.id, b]));
+      incoming.forEach((b) => m.set(b.id, b));
+      next = [...m.values()];
+    }
+    setBooks(next); incoming.forEach(pushBook);
+    if (settingsIn && typeof settingsIn === 'object' && +settingsIn.goal > 0) saveSettings({ goal: Math.round(+settingsIn.goal) });
+    return incoming.length;
+  }, []);
+
+  // Starter wishlist: each title is added at most once (remembered in settings), and never if a
+  // book with the same id or title (incl. original title) is already on your shelves.
+  seedFn.current = () => {
+    if (seeded.current) return; seeded.current = true;
+    const prevKeys = Array.isArray(settingsRef.current.seededKeys) ? settingsRef.current.seededKeys : [];
+    const done = new Set(prevKeys);
+    const ids = new Set(booksRef.current.map((b) => b.id));
+    const titles = new Set(booksRef.current.flatMap((b) => [b.title, ...(Array.isArray(b.altTitles) ? b.altTitles : [])]).map(norm));
+    const now = Date.now(); const added = [];
+    SEED_BOOKS.forEach((sd, i) => {
+      if (done.has(sd.key)) return;
+      done.add(sd.key);
+      if (ids.has(sd.id) || [sd.title, ...sd.alt].some((t) => titles.has(norm(t)))) return;
+      added.push(makeBook({ ...sd.book, addedAt: new Date(now - i * 1000).toISOString() }));
+    });
+    if (added.length) { setBooks([...booksRef.current, ...added]); added.forEach(pushBook); }
+    if (done.size !== prevKeys.length) saveSettings({ seededKeys: [...done] });
+  };
+  const getBooks = useCallback(() => booksRef.current, []);
+
+  return { books, settings, sync, upsert, update, remove, saveSettings, importBooks, getBooks };
+}
+
+const needsDetails = (b, retry) => (b.enrich === '' || b.enrich == null || (retry && b.enrich === 'failed'))
+  && ((!b.cover && !b.coverUrl) || !b.year || !b.description || !b.pages);
+
+function useEnrichment(lib) {
+  const [st, setSt] = useState({ phase: 'idle', done: 0, total: 0, found: 0 });
+  const [hidden, setHiddenState] = useState(() => { try { return localStorage.getItem('booklibrary.detailsHidden') === '1'; } catch (e) { return false; } });
+  const setHidden = (v) => { setHiddenState(v); try { localStorage.setItem('booklibrary.detailsHidden', v ? '1' : '0'); } catch (e) {} };
+  const busy = useRef(false);
+  const stop = useRef(false);
+  const run = useCallback(async (retry) => {
+    if (busy.current) return;
+    const queue = lib.getBooks().filter((b) => needsDetails(b, retry)).map((b) => b.id);
+    if (!queue.length) { setSt({ phase: 'done', done: 0, total: 0, found: 0 }); return; }
+    busy.current = true; stop.current = false;
+    let done = 0, found = 0, reachable = false;
+    setSt({ phase: 'running', done, total: queue.length, found });
+    for (const id of queue) {
+      if (stop.current) break;
+      const b = lib.getBooks().find((x) => x.id === id);
+      if (!b) { done++; continue; }
+      try {
+        const doc = await lookupOpenLibrary(b);
+        reachable = true;
+        if (doc) {
+          found++;
+          let desc = '';
+          if (!b.description && doc.key) desc = await fetchOLDescription(doc.key);
+          lib.update(id, (cur) => ({
+            ...cur,
+            coverUrl: cur.cover || cur.coverUrl ? cur.coverUrl : (doc.cover_i ? 'https://covers.openlibrary.org/b/id/' + doc.cover_i + '-M.jpg' : ''),
+            year: cur.year || (doc.first_publish_year ? String(doc.first_publish_year) : ''),
+            pages: cur.pages || (doc.number_of_pages_median ? String(doc.number_of_pages_median) : ''),
+            genres: cur.genres && cur.genres.length ? cur.genres : pickGenres(doc.subject),
+            olKey: cur.olKey || doc.key || '',
+            description: cur.description || desc,
+            descriptionSource: cur.description ? cur.descriptionSource : (desc ? 'openlibrary' : ''),
+            enrich: 'ok',
+          }));
+        } else lib.update(id, { enrich: 'notfound' });
+      } catch (e) {
+        if (!reachable) { busy.current = false; setSt({ phase: 'unreachable', done: 0, total: queue.length, found: 0 }); return; }
+        lib.update(id, { enrich: 'failed' });
+      }
+      done++;
+      setSt({ phase: 'running', done, total: queue.length, found });
+      await new Promise((r) => setTimeout(r, 350));
+    }
+    busy.current = false;
+    setSt({ phase: 'done', done, total: queue.length, found });
+  }, []);
+  return { st, run, hidden, setHidden, stop: () => { stop.current = true; } };
+}
+
+function DetailsPanel({ books, enr }) {
+  const { hidden, setHidden } = enr;
+  const missing = books.filter((b) => needsDetails(b, true)).length;
+  if (hidden && enr.st.phase !== 'running') return null;
+  const { phase, done, total, found } = enr.st;
+  if (phase !== 'running' && !missing && phase !== 'done') return null;
+  if (phase === 'done' && !missing && !total) return null;
+  return html`<div className="mb-4 border-l-4 border-forest bg-[#EDF1EA] px-4 py-3 rise">
+    ${phase === 'running' ? html`<div>
+        <div className="flex items-center justify-between gap-3 text-[15px]"><span className="font-semibold text-navy">Loading book details from Open Library…</span><span className="text-navy/70">${done} / ${total}</span></div>
+        <div className="mt-2 h-1.5 bg-white/70 overflow-hidden"><div className="h-full bg-navy transition-all" style=${{ width: Math.round(done / Math.max(1, total) * 100) + '%' }}></div></div>
+        <button type="button" className="mt-2 text-sm font-semibold text-navy underline" onClick=${enr.stop}>Stop</button></div>`
+    : phase === 'unreachable' ? html`<div className="flex gap-3 items-start">
+        <span className="text-rouge mt-0.5"><${Icon} name="wifiOff" size=${18} /></span>
+        <div className="flex-1 text-[15px] text-ink/85"><b className="text-navy">Open Library can't be reached right now.</b> You may be offline. ${missing} books keep their placeholder cover for now — nothing is invented. Try again when you're online.
+          <div className="mt-2 flex gap-3"><button type="button" className="font-semibold text-navy underline" onClick=${() => enr.run(true)}>Try again</button><button type="button" className="text-ink/60 underline" onClick=${() => setHidden(true)}>Hide</button></div></div></div>`
+    : phase === 'done' ? html`<div className="flex items-center justify-between gap-3 text-[15px]"><span className="text-navy"><b>Done.</b> Details found for ${found} of ${total} books${missing ? ' · ' + missing + ' still incomplete' : ''}.</span><button type="button" className="text-ink/60 underline text-sm" onClick=${() => setHidden(true)}>Hide</button></div>`
+    : html`<div className="flex items-center justify-between gap-3 text-[15px]"><span className="text-navy">${missing} books have no cover or summary yet.</span><button type="button" className="btn-primary !py-1.5" onClick=${() => { setHidden(false); enr.run(true); }}>Load details</button></div>`}
+  </div>`;
+}
+
+/* ───────────────────────── icons (Lucide paths) ───────────────────────── */
+const ICONS = {
+  search: ['c:11 11 8', 'm21 21-4.3-4.3'],
+  plus: ['M5 12h14', 'M12 5v14'],
+  x: ['M18 6 6 18', 'm6 6 12 12'],
+  star: ['p:12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2'],
+  heart: ['M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z'],
+  compass: ['c:12 12 10', 'm16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z'],
+  library: ['m16 6 4 14', 'M12 6v14', 'M8 8v12', 'M4 4v16'],
+  bookOpen: ['M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z', 'M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z'],
+  bookmark: ['m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z'],
+  archive: ['r:2 3 20 5 1', 'M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8', 'M10 12h4'],
+  trash: ['M3 6h18', 'M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6', 'M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2'],
+  copy: ['r:8 8 14 14 2', 'M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2'],
+  pencil: ['M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z'],
+  check: ['M20 6 9 17l-5-5'],
+  sparkles: ['m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z'],
+  download: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'm7 10 5 5 5-5', 'M12 15V3'],
+  upload: ['M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4', 'm17 8-5-5-5 5', 'M12 3v12'],
+  image: ['r:3 3 18 18 2', 'c:9 9 2', 'm21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21'],
+  zap: ['p:13 2 3 14 12 14 11 22 21 10 12 10 13 2'],
+  play: ['p:6 3 20 12 6 21 6 3'],
+  wifiOff: ['M12 20h.01', 'M8.5 16.43a5 5 0 0 1 7 0', 'M2 8.82a15 15 0 0 1 4.17-2.65', 'M10.66 5c4.01-.36 8.14.9 11.34 3.76', 'M16.85 11.25a10 10 0 0 1 2.22 1.68', 'M5 12.86a10 10 0 0 1 5.17-2.69', 'm2 2 20 20'],
+  cloud: ['M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z'],
+  arrowRight: ['M5 12h14', 'm12 5 7 7-7 7'],
+  shuffle: ['m18 14 4 4-4 4', 'm18 2 4 4-4 4', 'M2 18h1.97a4 4 0 0 0 3.3-1.7l5.45-8.6a4 4 0 0 1 3.3-1.7H22', 'M2 6h1.97a4 4 0 0 1 3.3 1.7l.48.77', 'M22 18h-6.04a4 4 0 0 1-3.3-1.8l-.36-.58'],
+  wand: ['m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z', 'm14 7 3 3'],
+};
+function Icon({ name, size = 18, className = '', fill = 'none', stroke = 2 }) {
+  const parts = ICONS[name] || [];
+  return html`<svg width=${size} height=${size} viewBox="0 0 24 24" fill=${fill} stroke="currentColor" strokeWidth=${stroke} strokeLinecap="round" strokeLinejoin="round" className=${'shrink-0 ' + className} aria-hidden="true">
+    ${parts.map((p, i) => {
+      if (p.startsWith('c:')) { const [x, y, r] = p.slice(2).split(' '); return html`<circle key=${i} cx=${x} cy=${y} r=${r} />`; }
+      if (p.startsWith('r:')) { const [x, y, w, h, rx] = p.slice(2).split(' '); return html`<rect key=${i} x=${x} y=${y} width=${w} height=${h} rx=${rx} />`; }
+      if (p.startsWith('p:')) return html`<polygon key=${i} points=${p.slice(2)} />`;
+      return html`<path key=${i} d=${p} />`;
+    })}
+  </svg>`;
+}
+
+/* ───────────────────────── small components ───────────────────────── */
+const PALETTES = [['#5E1A26', '#7F2A38'], ['#1D3526', '#33503C'], ['#4A2619', '#6E3A24'], ['#6E1E2B', '#8E3442'], ['#24402F', '#3B5E46'], ['#3A2A1E', '#5E4530']];
+const hash = (s) => { let h = 0; for (const c of String(s || '')) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
+
+function Cover({ book, className = '', big = false }) {
+  const [failed, setFailed] = useState(false);
+  useEffect(() => setFailed(false), [book.coverUrl]);
+  const src = book.cover || (!failed && book.coverUrl) || '';
+  if (src) return html`<img src=${src} alt="" loading="lazy" onError=${() => setFailed(true)} className=${'object-cover bg-parchment ' + className} />`;
+  const [a, b] = PALETTES[hash(book.title + '|' + book.author) % PALETTES.length];
+  const pos = /\babsolute\b/.test(className) ? '' : 'relative ';
+  return html`<div className=${pos + 'overflow-hidden flex flex-col justify-between text-center select-none ' + className} style=${{ background: `linear-gradient(160deg, ${a}, ${b})` }}>
+    <div className="absolute inset-y-0 left-0 w-[7%] bg-black/25"></div>
+    <div className="absolute inset-[7%] border border-[#D9B865]/55"></div>
+        <div className="absolute right-[16%] top-0 w-[7%] h-[13%] bg-[#B23A48] [clip-path:polygon(0_0,100%_0,100%_100%,50%_78%,0_100%)] shadow-sm"></div>
+    <div lang="de" style=${{ hyphens: 'auto', WebkitHyphens: 'auto' }} className=${'relative px-[13%] pt-[22%] font-display font-semibold text-[#EAD59A] leading-tight uppercase tracking-[.06em] ' + (big ? 'text-[17px]' : 'text-[11px] sm:text-[12px]')}>${book.title || 'Untitled'}</div>
+    <div className="relative mx-auto w-[30%] h-[2px] bg-[#D9B865]/60"></div>
+    <div className=${'relative pb-[15%] px-[12%] text-[#E7C873]/90 truncate ' + (big ? 'text-sm' : 'text-[9px]')}>${book.author || ''}</div>
+  </div>`;
+}
+
+function Stars({ value = 0, onChange, size = 16 }) {
+  return html`<div className="flex items-center gap-0.5">
+    ${[1, 2, 3, 4, 5].map((n) => {
+      const on = n <= value;
+      const s = html`<${Icon} name="star" size=${size} fill=${on ? 'currentColor' : 'none'} stroke=${1.6} className=${on ? 'text-gold' : 'text-stone-300'} />`;
+      return onChange
+        ? html`<button key=${n} type="button" aria-label=${n + ' star' + (n > 1 ? 's' : '')} aria-pressed=${on}
+            onClick=${(e) => { e.stopPropagation(); onChange(n === value ? 0 : n); }}
+            className="p-1 rounded-full transition hover:scale-110 active:scale-95">${s}</button>`
+        : html`<span key=${n}>${s}</span>`;
+    })}
+  </div>`;
+}
+
+function Sheet({ open, onClose, title, children, wide }) {
+  useEffect(() => {
+    if (!open) return;
+    const k = (e) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', k);
+    const prev = document.body.style.overflow; document.body.style.overflow = 'hidden';
+    return () => { window.removeEventListener('keydown', k); document.body.style.overflow = prev; };
+  }, [open, onClose]);
+  if (!open) return null;
+  return html`<div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-6" role="dialog" aria-modal="true">
+    <div className="absolute inset-0 bg-[#2B2118]/45 backdrop-blur-[2px] fade-in" onClick=${onClose}></div>
+    <div className=${'relative w-full ' + (wide ? 'sm:max-w-2xl' : 'sm:max-w-lg') + ' max-h-[92vh] overflow-y-auto overscroll-contain bg-cream rounded-t-[6px] sm:rounded-[3px] shadow-2xl sheet-in'}>
+      <div className="sticky top-0 z-10 flex items-center justify-between gap-3 px-5 pt-4 pb-3 bg-cream/95 backdrop-blur border-b border-parchment/70">
+        <div className="sm:hidden absolute left-1/2 -translate-x-1/2 top-1.5 w-10 h-1 rounded-full bg-stone-300"></div>
+        <h2 className="font-display text-[24px] text-ink truncate">${title}</h2>
+        <button onClick=${onClose} className="p-2 -mr-2 rounded-full hover:bg-parchment/70 text-wood" aria-label="Close"><${Icon} name="x" /></button>
+      </div>
+      <div className="px-5 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]">${children}</div>
+    </div>
+  </div>`;
+}
+
+function Summary({ text, source }) {
+  const [open, setOpen] = useState(false);
+  if (!text) return html`<p className="text-sm italic text-stone-500">No description found. You can add your own notes.</p>`;
+  const long = text.length > 280;
+  return html`<div>
+    ${source === 'claude' && html`<span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-caramelDark bg-parchment/70 rounded-full px-2 py-0.5 mb-2"><${Icon} name="sparkles" size=${11} />AI-written · may be inaccurate</span>`}
+    ${source === 'openlibrary' && html`<span className="inline-block text-[10px] font-bold uppercase tracking-wider text-forest/80 bg-parchment/50 px-2 py-0.5 mb-2">From Open Library</span>`}
+    <p className=${cx('text-[15px] leading-relaxed text-ink/85 whitespace-pre-line', !open && long && 'line-clamp-4')}>${text}</p>
+    ${long && html`<button type="button" onClick=${() => setOpen(!open)} className="mt-1 text-sm font-semibold text-forest hover:underline">${open ? 'Show less' : 'Show more'}</button>`}
+  </div>`;
+}
+
+function StatusPicker({ value, onChange }) {
+  return html`<div className="grid grid-cols-3 gap-1 p-1 rounded-[3px] bg-parchment/50 border border-parchment">
+    ${Object.entries(STATUS).map(([k, s]) => html`<button key=${k} type="button" onClick=${() => onChange(k)} aria-pressed=${value === k}
+      className=${cx('rounded-[2px] py-2 px-1 font-caps text-[14px] tracking-[.1em] transition', value === k ? 'bg-forest text-[#F1E3BE] shadow' : 'text-wood hover:bg-paper')}>
+      ${s.short}</button>`)}
+  </div>`;
+}
+
+function MoodTags({ b, max = 3 }) {
+  const m = [...moodsOf(b)].slice(0, max);
+  if (!m.length) return null;
+  return html`<div className="flex flex-wrap gap-1">${m.map((k) => html`<span key=${k} className=${'font-caps text-[11px] tracking-[.06em] px-1.5 py-px border ' + MOOD_CLS[k]}>${(MOODS.find((x) => x[0] === k) || [])[1]}</span>`)}</div>`;
+}
+function MoodFilter({ value, onChange, counts }) {
+  return html`<div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4 sm:mx-0 sm:px-0 items-center">
+    <span className="label !mb-0 shrink-0 mr-1">Mood</span>
+    ${MOODS.map(([k, l]) => html`<button key=${k} type="button" aria-pressed=${value === k} onClick=${() => onChange(value === k ? 'all' : k)}
+      className=${cx('shrink-0 px-2.5 py-1 font-caps text-[13px] tracking-[.08em] border transition', value === k ? MOOD_CLS[k] + ' ring-1 ring-offset-1 ring-gold' : 'bg-paper text-wood border-[#D9CBAE] hover:border-gold')}>${l}${counts ? html` <span className="opacity-60 font-normal">${counts[k] || 0}</span>` : ''}</button>`)}
+  </div>`;
+}
+function PickSheet({ pick, onClose, onAnother, onStart, onOpen }) {
+  const b = pick && pick.book;
+  return html`<${Sheet} open=${!!b} onClose=${onClose} title=${pick && pick.kind === 'random' ? 'Random pick from your TBR' : 'What should I read next?'}>
+    ${b && html`<div className="text-center">
+      <${Cover} key=${b.id} book=${b} big=${true} className="mx-auto w-36 h-[216px] shadow-lift rise" />
+      <h3 className="font-display text-[30px] font-semibold leading-tight text-ink mt-4">${b.title}</h3>
+      <p className="text-wood">${b.author || 'Unknown author'}</p>
+      <div className="flex justify-center mt-2"><${MoodTags} b=${b} max=${4} /></div>
+      ${pick.reason && html`<p className="mt-4 text-[15px] text-ink/80 bg-[#FBF5E6] border-l-2 border-wine px-3 py-2 text-left italic">${pick.reason}</p>`}
+      <div className="flex flex-wrap justify-center gap-2 mt-5">
+        <button type="button" className="btn-primary" onClick=${() => onStart(b)}><${Icon} name="play" size=${13} />Start reading</button>
+        <button type="button" className="btn-soft" onClick=${onAnother}><${Icon} name=${pick.kind === 'random' ? 'shuffle' : 'wand'} size=${15} />${pick.kind === 'random' ? 'Pick another' : 'Another idea'}</button>
+        <button type="button" className="btn-ghost" onClick=${() => onOpen(b.id)}>Details</button>
+      </div>
+    </div>`}
+  <//>`;
+}
+
+function GenreChips({ genres, max = 3 }) {
+  if (!genres || !genres.length) return null;
+  return html`<div className="flex flex-wrap gap-1">${genres.slice(0, max).map((g) => html`<span key=${g} className="text-[11px] px-2 py-0.5 rounded-full bg-parchment/60 text-wood">${g}</span>`)}</div>`;
+}
+
+function Ornament({ className = '' }) {
+  return html`<svg viewBox="0 0 120 16" className=${'h-4 w-[120px] text-gold ' + className} aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1">
+    <path d="M0 8h44M76 8h44" /><path d="M60 2l6 6-6 6-6-6z" fill="#7A2232" stroke="#7A2232" /><path d="M60 5.2l2.8 2.8-2.8 2.8-2.8-2.8z" fill="#E9C9A0" stroke="none" /><circle cx="48" cy="8" r="1.6" fill="#24402F" stroke="#24402F" /><circle cx="72" cy="8" r="1.6" fill="#24402F" stroke="#24402F" />
+  </svg>`;
+}
+function Heading({ children, className = '' }) {
+  return html`<div className=${'flex items-center gap-3 mb-3 ' + className}><span className="w-2 h-2 rotate-45 bg-wine shrink-0"></span><h2 className="section-title shrink-0">${children}</h2><div className="flex-1 gilt-rule"></div></div>`;
+}
+function Empty({ title, text, children }) {
+  return html`<div className="card-framed px-6 py-11 text-center rise">
+    <${Ornament} className="mx-auto mb-4" />
+    <h3 className="font-display text-[26px] text-ink">${title}</h3>
+    <p className="text-sm text-wood/80 mt-1.5 max-w-sm mx-auto">${text}</p>
+    ${children && html`<div className="mt-5 flex flex-wrap justify-center gap-2">${children}</div>`}
+  </div>`;
+}
+
+/* ───────────────────────── book form (manual add / edit) ───────────────────────── */
+function BookForm({ initial, onSubmit, onCancel, submitLabel, showStatus }) {
+  const [f, setF] = useState(() => ({ title: '', author: '', year: '', pages: '', language: '', description: '', status: 'tbr', cover: '', owned: false, ...(initial || {}), genresText: ((initial && initial.genres) || []).join(', ') }));
+  const [err, setErr] = useState('');
+  const set = (k) => (e) => setF((p) => ({ ...p, [k]: e.target.value }));
+  const onCover = async (e) => {
+    const file = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    try { const c = await fileToCover(file); setF((p) => ({ ...p, cover: c })); } catch (x) { setErr('That image could not be read.'); }
+  };
+  const submit = (e) => {
+    e.preventDefault();
+    if (!f.title.trim()) { setErr('Please add a title.'); return; }
+    const genres = f.genresText.split(',').map((s) => s.trim()).filter(Boolean).slice(0, 6);
+    const { genresText, ...rest } = f;
+    onSubmit({ ...rest, owned: f.status !== 'tbr' || !!f.owned, title: f.title.trim(), author: f.author.trim(), year: String(f.year || '').trim(), pages: String(f.pages || '').trim(), language: f.language.trim(), description: f.description.trim(), genres });
+  };
+  return html`<form onSubmit=${submit} className="space-y-4">
+    <div className="flex gap-4">
+      <label className="shrink-0 cursor-pointer group" title="Add a cover photo">
+        <div className="relative w-24 h-36 rounded-lg overflow-hidden shadow-md">
+          ${f.cover ? html`<img src=${f.cover} alt="" className="w-full h-full object-cover" />` : html`<${Cover} book=${{ title: f.title || 'Your book', author: f.author }} className="w-full h-full" />`}
+          <div className="absolute inset-x-0 bottom-0 bg-black/45 text-cream text-[11px] font-semibold py-1 flex items-center justify-center gap-1 group-hover:bg-black/60 transition"><${Icon} name="image" size=${12} />${f.cover ? 'Change' : 'Cover'}</div>
+        </div>
+        <input type="file" accept="image/*" className="sr-only" onChange=${onCover} />
+      </label>
+      <div className="flex-1 min-w-0 space-y-3">
+        <div><label className="label">Title *</label><input className="field" value=${f.title} onChange=${set('title')} placeholder="e.g. The Alchemist" autoFocus=${!initial || !initial.title} /></div>
+        <div><label className="label">Author</label><input className="field" value=${f.author} onChange=${set('author')} placeholder="e.g. Paulo Coelho" /></div>
+      </div>
+    </div>
+    <div className="grid grid-cols-3 gap-2.5">
+      <div><label className="label">Year</label><input className="field" inputMode="numeric" value=${f.year} onChange=${set('year')} placeholder="1988" /></div>
+      <div><label className="label">Pages</label><input className="field" inputMode="numeric" value=${f.pages} onChange=${set('pages')} placeholder="208" /></div>
+      <div><label className="label">Language</label><input className="field" value=${f.language} onChange=${set('language')} placeholder="English" /></div>
+    </div>
+    <div><label className="label">Genres</label><input className="field" value=${f.genresText} onChange=${set('genresText')} placeholder="Fantasy, Classics (comma separated)" /></div>
+    ${showStatus && html`<div><label className="label">Shelf</label><${StatusPicker} value=${f.status} onChange=${(v) => setF((p) => ({ ...p, status: v }))} /></div>`}
+    ${showStatus && f.status === 'tbr' && html`<div><label className="label">Add to</label>
+      <div className="grid grid-cols-2 gap-1 p-1 rounded-[3px] bg-parchment/50 border border-parchment">
+        ${[[false, 'Wishlist'], [true, 'Already own it']].map(([k, l]) => html`<button key=${l} type="button" onClick=${() => setF((p) => ({ ...p, owned: k }))} aria-pressed=${!!f.owned === k}
+          className=${cx('rounded-[2px] py-2 px-1 font-caps text-[14px] tracking-[.08em] transition', !!f.owned === k ? (k ? 'bg-forest text-[#F1E3BE] shadow' : 'bg-wine text-[#F6E7D2] shadow') : 'text-wood hover:bg-paper')}>${l}</button>`)}
+      </div></div>`}
+    <div><label className="label">Summary</label><textarea className="field min-h-[96px]" value=${f.description} onChange=${set('description')} placeholder="Optional — a short summary in your own words" /></div>
+    ${err && html`<p className="text-sm text-rose-700">${err}</p>`}
+    <div className="flex justify-end gap-2 pt-1">
+      ${onCancel && html`<button type="button" className="btn-ghost" onClick=${onCancel}>Cancel</button>`}
+      <button type="submit" className="btn-primary"><${Icon} name="check" size=${16} />${submitLabel || 'Save'}</button>
+    </div>
+  </form>`;
+}
+
+/* ───────────────────────── Discover ───────────────────────── */
+const EXAMPLES = ['The Alchemist', 'Circe', 'The Night Circus', 'Jane Austen', 'Brandon Sanderson', 'Kafka on the Shore'];
+
+function ResultCard({ r, inLib, onAdd, onLoadDesc, onOpen }) {
+  return html`<article className="card p-3.5 flex gap-3.5 rise hover:shadow-lift transition">
+    <${Cover} book=${r} className="w-[76px] h-[114px] sm:w-[88px] sm:h-[132px] rounded-md shrink-0 shadow-md" />
+    <div className="min-w-0 flex-1 flex flex-col gap-1">
+      <h3 className="font-display text-[21px] font-semibold leading-snug text-ink line-clamp-2">${r.title}</h3>
+      <p className="text-sm text-wood/90 truncate">${r.author || 'Unknown author'}${r.year ? ' · ' + r.year : ''}</p>
+      <${GenreChips} genres=${r.genres} />
+      <div className="mt-1">
+        ${r.description === null
+          ? html`<button type="button" onClick=${() => onLoadDesc(r)} disabled=${r.descLoading} className="text-sm font-semibold text-forest hover:underline">${r.descLoading ? 'Loading summary…' : 'Show summary'}</button>`
+          : r.source === 'claude' && r.description
+            ? html`<${Summary} text=${r.description} source="claude" />`
+            : r.description ? html`<${Summary} text=${r.description} /> ` : html`<p className="text-sm italic text-stone-500">No summary available.</p>`}
+      </div>
+      <div className="mt-auto pt-2.5 flex flex-wrap gap-1.5">
+        ${inLib
+          ? html`<button type="button" onClick=${() => onOpen(inLib.id)} className="btn-soft !py-1.5 !px-3 text-xs"><${Icon} name="check" size=${14} />${'Saved · ' + (onWishlist(inLib) ? 'Wishlist' : STATUS[inLib.status].short)}</button>`
+          : html`
+            <button type="button" onClick=${() => onAdd(r, 'tbr', false)} className="btn !py-1.5 !px-3 text-xs bg-wine text-[#F6E7D2] border-wine hover:brightness-110"><${Icon} name="plus" size=${14} />To Be Read</button>
+            <button type="button" onClick=${() => onAdd(r, 'reading')} className="btn-soft !py-1.5 !px-3 text-xs">Reading</button>
+            <button type="button" onClick=${() => onAdd(r, 'finished')} className="btn-soft !py-1.5 !px-3 text-xs">Finished</button>`}
+      </div>
+    </div>
+  </article>`;
+}
+
+function Shelf({ title, books, onOpen }) {
+  if (!books.length) return null;
+  return html`<section className="mt-7 rise">
+    <${Heading}>${title}<//>
+    <div className="flex gap-3.5 overflow-x-auto no-scrollbar pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+      ${books.map((b) => html`<button key=${b.id} onClick=${() => onOpen(b.id)} className="shrink-0 w-[104px] text-left group">
+        <${Cover} book=${b} className="w-[104px] h-[156px] rounded-lg shadow-card group-hover:shadow-lift group-hover:-translate-y-1 transition" />
+        <p className="mt-2 text-[13px] font-semibold text-ink leading-tight line-clamp-2">${b.title}</p>
+        ${b.status === 'reading' && +b.pages > 0 && html`<div className="mt-1.5 h-1 rounded-full bg-parchment overflow-hidden"><div className="h-full bg-rouge" style=${{ width: Math.min(100, Math.round((+b.currentPage || 0) / +b.pages * 100)) + '%' }}></div></div>`}
+      </button>`)}
+    </div>
+  </section>`;
+}
+
+function Discover({ books, onAdd, onOpen, onManual, focusKey, onSuggest, onRandom }) {
+  const [q, setQ] = useState('');
+  const [lastQ, setLastQ] = useState('');
+  const [phase, setPhase] = useState('idle');
+  const [results, setResults] = useState([]);
+  const [source, setSource] = useState('');
+  const [notice, setNotice] = useState(null);
+  const reqId = useRef(0);
+  const inputRef = useRef(null);
+  useEffect(() => { if (focusKey && inputRef.current) inputRef.current.focus(); }, [focusKey]);
+
+  const run = async (raw) => {
+    const query = String(raw != null ? raw : q).trim();
+    if (!query) return;
+    setQ(query); setLastQ(query);
+    const id = ++reqId.current;
+    setPhase('loading'); setNotice(null); setResults([]);
+    try {
+      const r = await searchOpenLibrary(query);
+      if (id !== reqId.current) return;
+      setSource('openlibrary'); setResults(r); setPhase('done'); return;
+    } catch (e) { /* fall back below */ }
+    if (id !== reqId.current) return;
+    const sample = await getCap('sample');
+    if (id !== reqId.current) return;
+    if (!sample) { setNotice('offline'); setPhase('error'); return; }
+    setNotice('claude'); setSource('claude');
+    try {
+      const r = await searchClaude(sample, query);
+      if (id !== reqId.current) return;
+      setResults(r); setPhase('done');
+    } catch (e) {
+      if (id !== reqId.current) return;
+      setNotice(e && e.code === 'rate_limited' ? 'busy' : 'failed'); setPhase('error');
+    }
+  };
+  const loadDesc = async (r) => {
+    setResults((rs) => rs.map((x) => (x.olKey === r.olKey ? { ...x, descLoading: true } : x)));
+    const d = await fetchOLDescription(r.olKey);
+    setResults((rs) => rs.map((x) => (x.olKey === r.olKey ? { ...x, description: d, descLoading: false } : x)));
+  };
+  const findInLib = (r) => books.find((b) => (r.olKey && b.olKey === r.olKey) || (norm(b.title) === norm(r.title) && norm(b.author) === norm(r.author)));
+  const reading = books.filter((b) => b.status === 'reading');
+  const nextUp = books.filter((b) => b.status === 'tbr').sort((a, b) => (b.nextUp - a.nextUp) || (PRIO_RANK[a.priority || ''] - PRIO_RANK[b.priority || ''])).slice(0, 10);
+
+  return html`<div>
+    <form onSubmit=${(e) => { e.preventDefault(); run(); }} className="card p-1.5 flex items-center gap-2 sticky top-2 z-20 border-gold/50">
+      <div className="pl-2 text-rouge"><${Icon} name="search" size=${20} /></div>
+      <input ref=${inputRef} value=${q} onChange=${(e) => setQ(e.target.value)} type="search" enterKeyHint="search"
+        placeholder="Search by title or author…" className="flex-1 min-w-0 bg-transparent py-2.5 text-[18px] placeholder:italic text-ink placeholder:text-stone-400 focus:outline-none" aria-label="Search books" />
+      <button type="submit" className="btn-primary" disabled=${!q.trim() || phase === 'loading'}>Search</button>
+    </form>
+
+    ${phase === 'idle' && html`<div>
+      <section className="mt-6 card-framed p-6 sm:p-8 text-center rise">
+                <p className="label">Discover</p>
+        <h2 className="font-display text-[30px] sm:text-[34px] text-ink leading-tight">What story is calling you next?</h2>
+        <${Ornament} className="mx-auto my-3" />
+        <p className="text-wood/80 italic">Search by title or author, then place the book on a shelf with one tap.</p>
+        <div className="flex flex-wrap justify-center gap-2 mt-5">
+          ${EXAMPLES.map((ex) => html`<button key=${ex} type="button" className="chip chip-off" onClick=${() => run(ex)}>${ex}</button>`)}
+        </div>
+      </section>
+      ${books.some((b) => b.status === 'tbr') && html`<section className="mt-5 grid grid-cols-2 gap-3 rise">
+        <button type="button" onClick=${onSuggest} className="text-left p-4 bg-[#7A2232] text-[#F6E7D2] shadow-card hover:shadow-lift transition outline outline-1 outline-offset-[-6px] outline-[#D9B865]/50">
+          <${Icon} name="wand" size=${20} /><p className="font-display text-[22px] font-semibold leading-tight mt-2">What should I read next?</p><p className="text-[13px] opacity-85 mt-1">Based on your ratings and favourite moods</p></button>
+        <button type="button" onClick=${() => onRandom()} className="text-left p-4 bg-[#24402F] text-[#F1E3BE] shadow-card hover:shadow-lift transition outline outline-1 outline-offset-[-6px] outline-[#D9B865]/50">
+          <${Icon} name="shuffle" size=${20} /><p className="font-display text-[22px] font-semibold leading-tight mt-2">Random book picker</p><p className="text-[13px] opacity-85 mt-1">Let chance choose from your TBR</p></button>
+      </section>`}
+      <${Shelf} title="Continue reading" books=${reading} onOpen=${onOpen} />
+      <${Shelf} title="Waiting on your TBR" books=${nextUp} onOpen=${onOpen} />
+    </div>`}
+
+    ${notice === 'claude' && html`<div className="mt-4 border border-gold/50 bg-[#FBF5E6] px-4 py-3 text-[15px] text-wood flex gap-3 rise">
+      <span className="text-rouge mt-0.5"><${Icon} name="wifiOff" size=${18} /></span>
+      <div><b className="text-ink">The live book database can't be reached right now.</b> These are <b>suggestions from Claude's general knowledge</b> — details may be incomplete or wrong.</div>
+    </div>`}
+
+    ${phase === 'loading' && html`<div className="mt-5 grid gap-3 sm:grid-cols-2">
+      ${[0, 1, 2, 3].map((i) => html`<div key=${i} className="card p-3.5 flex gap-3.5"><div className="skeleton w-[76px] h-[114px] rounded-md"></div><div className="flex-1 space-y-2 pt-1"><div className="skeleton h-4 rounded w-3/4"></div><div className="skeleton h-3 rounded w-1/2"></div><div className="skeleton h-3 rounded w-2/3 mt-4"></div></div></div>`)}
+      <p className="sm:col-span-2 text-center text-sm text-wood/70">${source === 'claude' || notice === 'claude' ? 'Asking Claude for matching books…' : 'Searching the stacks…'}</p>
+    </div>`}
+
+    ${phase === 'error' && html`<div className="mt-5"><${Empty} 
+        title=${notice === 'busy' ? 'Too many searches at once' : "Couldn't reach a book source"}
+        text=${notice === 'busy' ? 'Give it a moment, then try again. You can always add the book by hand.' : 'The book search isn’t available right now. No worries — you can still add the book by hand in a few seconds.'}>
+        <button className="btn-primary" onClick=${() => onManual({ title: lastQ })}><${Icon} name="pencil" size=${15} />Add “${lastQ}” manually</button>
+        <button className="btn-soft" onClick=${() => run(lastQ)}>Try again</button>
+      <//></div>`}
+
+    ${phase === 'done' && html`<div className="mt-5">
+      <div className="flex items-baseline justify-between gap-3 mb-3">
+        <p className="text-sm text-wood/80">${results.length ? html`<b className="text-ink">${results.length}</b> ${source === 'claude' ? 'suggestions from Claude' : 'results from Open Library'} for “${lastQ}”` : ''}</p>
+        <button type="button" className="text-sm font-semibold text-forest hover:underline shrink-0" onClick=${() => { setPhase('idle'); setResults([]); setNotice(null); setQ(''); }}>Clear</button>
+      </div>
+      ${results.length === 0
+        ? html`<${Empty} title="No books found" text=${`Nothing matched “${lastQ}”. Try another spelling, or add the book yourself.`}>
+            <button className="btn-primary" onClick=${() => onManual({ title: lastQ })}><${Icon} name="pencil" size=${15} />Add manually</button><//>`
+        : html`<div className="grid gap-3 sm:grid-cols-2">${results.map((r, i) => html`<${ResultCard} key=${(r.olKey || r.title) + i} r=${r} inLib=${findInLib(r)} onAdd=${onAdd} onLoadDesc=${loadDesc} onOpen=${onOpen} />`)}</div>
+          <p className="text-center text-sm text-wood/70 mt-5">Can't find it? <button className="font-semibold text-forest hover:underline" onClick=${() => onManual({ title: lastQ })}>Add it manually</button></p>`}
+    </div>`}
+  </div>`;
+}
+
+/* ───────────────────────── My Library ───────────────────────── */
+function BookCard({ b, onOpen, onQuick, showOrder }) {
+  const next = b.status === 'tbr' ? { to: 'reading', label: 'Start', icon: 'play' } : b.status === 'reading' ? { to: 'finished', label: 'Finish', icon: 'check' } : null;
+  return html`<article className="card overflow-hidden flex flex-col group rise hover:-translate-y-0.5 hover:shadow-lift transition duration-300">
+    <button type="button" onClick=${() => onOpen(b.id)} className="relative block aspect-[2/3] w-full overflow-hidden bg-parchment" aria-label=${'Open ' + b.title}>
+      <${Cover} book=${b} className="absolute inset-0 w-full h-full group-hover:scale-[1.03] transition duration-500" />
+      <span className=${'absolute top-2 left-2 font-caps text-[11px] tracking-[.14em] px-2 py-0.5 backdrop-blur ' + (onWishlist(b) ? WISH_BADGE : STATUS[b.status].badge)}>${onWishlist(b) ? 'Wishlist' : STATUS[b.status].short}</span>
+      ${showOrder && b.seriesOrder && html`<span className="absolute bottom-2 left-2 bg-ink/85 text-[#F3E6C4] text-[11px] font-bold px-2 py-0.5">No. ${b.seriesOrder}</span>`}
+      ${b.favorite && html`<span className="absolute top-2 right-2 grid place-items-center w-7 h-7 rounded-full bg-cream/90 text-rouge shadow"><${Icon} name="heart" size=${14} fill="currentColor" /></span>`}
+    </button>
+    <div className="p-3 flex flex-col gap-1 flex-1">
+      <h3 className="font-display text-[18px] font-semibold leading-snug text-ink line-clamp-2">${b.title}</h3>
+      <p className="text-xs text-wood/80 truncate">${b.author || 'Unknown author'}</p>
+      <div className="flex items-center justify-between gap-2 mt-0.5">
+        <${Stars} value=${b.rating} size=${13} />
+      </div>
+      <${MoodTags} b=${b} max=${2} />
+      <div className="mt-auto pt-2.5 flex gap-1.5">
+        <button type="button" onClick=${() => onOpen(b.id)} className="btn-soft !px-2 !py-1.5 text-xs flex-1">Details</button>
+        ${next && html`<button type="button" onClick=${() => onQuick(b, next.to)} className="btn-primary !px-2.5 !py-1.5 text-xs" title=${'Move to ' + STATUS[next.to].label}><${Icon} name=${next.icon} size=${12} />${next.label}</button>`}
+      </div>
+    </div>
+  </article>`;
+}
+
+function Library({ books: allBooks, onOpen, onQuick, onAdd, goDiscover, enr }) {
+  const [status, setStatus] = useState('all');
+  const col = 'all';
+  const shelf = useMemo(() => allBooks.filter(inLibrary), [allBooks]);
+  const books = shelf;
+  const [mood, setMood] = useState('all');
+  const [rating, setRating] = useState('any');
+  const [genre, setGenre] = useState('all');
+  const [sort, setSort] = useState('added');
+  const [q, setQ] = useState('');
+  const genres = useMemo(() => {
+    const m = {}; books.forEach((b) => (b.genres || []).forEach((g) => { m[g] = (m[g] || 0) + 1; }));
+    return Object.keys(m).sort((a, b) => m[b] - m[a] || a.localeCompare(b));
+  }, [books]);
+  const counts = useMemo(() => ({
+    all: books.length, tbr: books.filter((b) => b.status === 'tbr').length, reading: books.filter((b) => b.status === 'reading').length,
+    finished: books.filter((b) => b.status === 'finished').length, fav: books.filter((b) => b.favorite).length,
+  }), [books]);
+  const list = useMemo(() => {
+    const nq = norm(q);
+    let l = books.filter((b) => {
+      if (status === 'fav' ? !b.favorite : status !== 'all' && b.status !== status) return false;
+      if (rating === 'unrated' ? b.rating > 0 : rating !== 'any' && (b.rating || 0) < +rating) return false;
+      if (genre !== 'all' && !(b.genres || []).includes(genre)) return false;
+      if (col === 'fitzek' && !isFitzek(b)) return false;
+      if (col === 'mustread' && !b.mustRead) return false;
+      if (mood !== 'all' && !moodsOf(b).has(mood)) return false;
+      if (nq && !norm(b.title + ' ' + b.author).includes(nq)) return false;
+      return true;
+    });
+    const by = {
+      added: (a, b) => String(b.addedAt).localeCompare(String(a.addedAt)),
+      title: (a, b) => a.title.localeCompare(b.title),
+      author: (a, b) => (a.author || '~').localeCompare(b.author || '~') || a.title.localeCompare(b.title),
+      rating: (a, b) => (b.rating || 0) - (a.rating || 0) || a.title.localeCompare(b.title),
+      finished: (a, b) => String(b.finishedAt || '').localeCompare(String(a.finishedAt || '')),
+      order: (a, b) => (+a.seriesOrder || 999) - (+b.seriesOrder || 999) || a.title.localeCompare(b.title),
+    };
+    return l.slice().sort(by[sort]);
+  }, [books, status, rating, genre, sort, q, col, mood]);
+  const tabs = [['all', 'All'], ['tbr', 'To Be Read'], ['reading', 'Reading'], ['finished', 'Finished'], ['fav', 'Favorites']];
+  const filtered = status !== 'all' || rating !== 'any' || genre !== 'all' || q || col !== 'all' || mood !== 'all';
+  const moodCounts = useMemo(() => { const c = {}; books.forEach((b) => moodsOf(b).forEach((m) => { c[m] = (c[m] || 0) + 1; })); return c; }, [books]);
+
+  if (!allBooks.length) return html`<${Empty} title="Your shelves are waiting" text="Search for a book you love or want to read, or add one by hand. Every library starts with a single story.">
+    <button className="btn-primary" onClick=${goDiscover}><${Icon} name="search" size=${15} />Find a book</button>
+    <button className="btn-soft" onClick=${() => onAdd()}><${Icon} name="plus" size=${15} />Add manually</button><//>`;
+
+  return html`<div>
+    <${DetailsPanel} books=${books} enr=${enr} />
+    <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 pb-1">
+      ${tabs.map(([k, l]) => html`<button key=${k} type="button" onClick=${() => setStatus(k)} className=${cx('chip', status === k ? 'chip-on' : 'chip-off')} aria-pressed=${status === k}>
+        ${l}<span className=${cx('text-[11px] rounded-full px-1.5', status === k ? 'bg-cream/20' : 'bg-parchment/70')}>${counts[k]}</span></button>`)}
+    </div>
+    <div className="mt-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="col-span-2 sm:col-span-1 relative">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-caramel"><${Icon} name="search" size=${16} /></span>
+        <input className="field !pl-9 !py-2 text-sm" value=${q} onChange=${(e) => setQ(e.target.value)} placeholder="Filter by title or author" aria-label="Filter library" />
+      </div>
+      <select className="field !py-2 text-sm" value=${rating} onChange=${(e) => setRating(e.target.value)} aria-label="Filter by rating">
+        <option value="any">Any rating</option><option value="5">5 stars only</option><option value="4">4 stars & up</option><option value="3">3 stars & up</option><option value="unrated">Not rated</option>
+      </select>
+      <select className="field !py-2 text-sm" value=${genre} onChange=${(e) => setGenre(e.target.value)} aria-label="Filter by genre">
+        <option value="all">All genres</option>${genres.map((g) => html`<option key=${g} value=${g}>${g}</option>`)}
+      </select>
+      <select className="field !py-2 text-sm col-span-2 sm:col-span-1" value=${sort} onChange=${(e) => setSort(e.target.value)} aria-label="Sort">
+<option value="added">Sort: Recently added</option><option value="title">Sort: Title</option><option value="author">Sort: Author</option><option value="rating">Sort: Rating</option><option value="finished">Sort: Recently finished</option>
+      </select>
+    </div>
+    <div className="mt-3"><${MoodFilter} value=${mood} onChange=${setMood} counts=${moodCounts} /></div>
+    <div className="flex items-center justify-between mt-4 mb-3 text-sm text-wood/80">
+      <span><b className="text-ink">${list.length}</b> ${list.length === 1 ? 'book' : 'books'}</span>
+      ${filtered && html`<button type="button" className="font-semibold text-forest hover:underline" onClick=${() => { setStatus('all'); setRating('any'); setGenre('all'); setQ(''); setMood('all'); }}>Reset filters</button>`}
+    </div>
+    ${list.length
+      ? html`<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">${list.map((b) => html`<${BookCard} key=${b.id} b=${b} onOpen=${onOpen} onQuick=${onQuick} />`)}</div>`
+      : col === 'all' && !shelf.length
+        ? html`<${Empty} title="Your library is still empty" text="Books you own live here. When you buy a book from your wishlist, tap “Bought” and it moves onto these shelves.">
+            <button className="btn-primary" onClick=${() => onAdd({ owned: true })}><${Icon} name="plus" size=${15} />Add a book I own</button><//>`
+        : html`<${Empty} title="No books match" text="Try loosening a filter." />`}
+  </div>`;
+}
+
+/* ───────────────────────── Reading Journal ───────────────────────── */
+function Stat({ label, value, sub, tone = '#7A2232' }) {
+  return html`<div className="card-framed p-4 text-center rise">
+    <p className="label !mb-0">${label}</p>
+    <p className="font-display text-[40px] mt-1 leading-none" style=${{ color: tone }}>${value}</p>
+    <div className="mx-auto mt-2 w-6 h-px bg-gold"></div>
+    ${sub && html`<p className="text-xs text-wood/70 mt-1.5">${sub}</p>`}
+  </div>`;
+}
+
+function Journal({ books, settings, saveSettings, onOpen, onUpdate }) {
+  const [jq, setJq] = useState('');
+  const [jf, setJf] = useState('all');
+  const [js, setJs] = useState('date');
+  const finished = books.filter((b) => b.status === 'finished');
+  const reading = books.filter((b) => b.status === 'reading');
+  const tbr = books.filter((b) => b.status === 'tbr');
+  const rated = finished.filter((b) => b.rating > 0);
+  const avg = rated.length ? (rated.reduce((s, b) => s + b.rating, 0) / rated.length) : 0;
+  const year = new Date().getFullYear();
+  const thisYear = finished.filter((b) => String(b.finishedAt || '').startsWith(String(year)));
+  const pagesYear = thisYear.reduce((s, b) => s + (+b.pages > 0 ? +b.pages : 0), 0);
+  const goal = Math.max(1, +settings.goal || 12);
+  const pct = Math.min(100, Math.round(thisYear.length / goal * 100));
+  const genreSrc = finished.length ? finished : books;
+  const gm = {}; genreSrc.forEach((b) => (b.genres || []).forEach((g) => { gm[g] = (gm[g] || 0) + 1; }));
+  const topGenres = Object.entries(gm).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const maxG = topGenres.length ? topGenres[0][1] : 1;
+  const feel = FEELINGS.map(([k, l]) => [k, l, finished.filter((b) => b.feeling === k).length]);
+  const jnq = norm(jq);
+  const recent = finished.filter((b) => (!jnq || norm(b.title + ' ' + b.author).includes(jnq))
+      && (jf === 'all' || (jf === 'fav' ? b.favorite : jf === 'top' ? b.rating >= 4 : jf === 'unrated' ? !b.rating : true)))
+    .sort(js === 'rating' ? (a, b) => (b.rating || 0) - (a.rating || 0) || a.title.localeCompare(b.title)
+      : js === 'title' ? (a, b) => a.title.localeCompare(b.title)
+      : (a, b) => String(b.finishedAt || b.addedAt || '').localeCompare(String(a.finishedAt || a.addedAt || '')));
+
+  if (!books.length) return html`<${Empty} title="Your journal is still blank" text="Once you add and finish books, your reading story appears here: ratings, favourite genres and your yearly goal." />`;
+
+  return html`<div className="space-y-6">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <${Stat} label="Books read" value=${finished.length} sub=${thisYear.length + ' in ' + year} />
+      <${Stat} tone="#24402F" label="Avg rating" value=${avg ? avg.toFixed(1) : '—'} sub=${rated.length ? 'from ' + rated.length + ' rated' : 'rate a finished book'} />
+      <${Stat} tone="#24402F" label="Reading now" value=${reading.length} sub=${reading.length ? reading.map((b) => b.title).slice(0, 1)[0] : 'nothing open'} />
+      <${Stat} tone="#7D5F2A" label="On your TBR" value=${tbr.length} sub=${tbr.filter((b) => b.nextUp).length + ' marked next up'} />
+    </div>
+
+    <section className="card p-5 rise">
+      <div className="flex items-start justify-between gap-3">
+        <div><h2 className="section-title">The ${year} reading goal</h2><p className="text-sm text-wood/80 mt-1">${thisYear.length} of ${goal} books${pagesYear ? ' · ' + pagesYear.toLocaleString('en-GB') + ' pages' : ''}</p></div>
+        <div className="flex items-center gap-1 bg-parchment/50 rounded-full p-1">
+          <button type="button" className="w-8 h-8 rounded-full hover:bg-paper text-wood font-bold" aria-label="Lower goal" onClick=${() => saveSettings({ goal: Math.max(1, goal - 1) })}>−</button>
+          <span className="w-8 text-center font-display text-lg">${goal}</span>
+          <button type="button" className="w-8 h-8 rounded-full hover:bg-paper text-wood font-bold" aria-label="Raise goal" onClick=${() => saveSettings({ goal: goal + 1 })}>+</button>
+        </div>
+      </div>
+      <div className="mt-4 h-3 rounded-full bg-parchment/70 overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-forest to-gold transition-all duration-700" style=${{ width: pct + '%' }}></div></div>
+      <p className="text-xs text-wood/70 mt-2">${pct >= 100 ? 'Goal reached. Splendidly done.' : pct + '% of the way'}</p>
+    </section>
+
+    ${reading.length > 0 && html`<section className="rise">
+      <${Heading}>Currently reading<//>
+      <div className="grid gap-3 sm:grid-cols-2">${reading.map((b) => {
+        const p = +b.pages > 0 ? Math.min(100, Math.round((+b.currentPage || 0) / +b.pages * 100)) : null;
+        return html`<div key=${b.id} className="card p-3 flex gap-3 items-center">
+          <button onClick=${() => onOpen(b.id)} className="shrink-0"><${Cover} book=${b} className="w-12 h-[72px] rounded shadow" /></button>
+          <div className="flex-1 min-w-0">
+            <button onClick=${() => onOpen(b.id)} className="font-display text-[15px] text-ink truncate block max-w-full text-left hover:underline">${b.title}</button>
+            ${p !== null
+              ? html`<div className="mt-1.5 h-1.5 rounded-full bg-parchment overflow-hidden"><div className="h-full bg-rouge transition-all" style=${{ width: p + '%' }}></div></div>
+                 <div className="flex items-center justify-between mt-1 text-xs text-wood/80"><span>p. ${b.currentPage || 0} / ${b.pages} · ${p}%</span>
+                 <button type="button" className="font-semibold text-forest hover:underline" onClick=${() => onUpdate(b.id, { currentPage: String(Math.min(+b.pages, (+b.currentPage || 0) + 10)) })}>+10 pages</button></div>`
+              : html`<p className="text-xs text-wood/70 mt-1">Started ${fmtDate(b.startedAt) || 'recently'} · add page count in details to track progress</p>`}
+          </div>
+        </div>`;
+      })}</div>
+    </section>`}
+
+    <div className="grid gap-4 md:grid-cols-2">
+      <section className="card p-5 rise">
+        <h2 className="section-title mb-1">Favourite genres</h2>
+        <p className="text-xs text-wood/70 mb-3">${finished.length ? 'Based on your finished books' : 'Based on all books on your shelves'}</p>
+        ${topGenres.length ? html`<div className="space-y-2.5">${topGenres.map(([g, n]) => html`<div key=${g}>
+            <div className="flex justify-between text-sm"><span className="text-ink">${g}</span><span className="text-wood/70">${n}</span></div>
+            <div className="h-2 rounded-full bg-parchment/60 overflow-hidden mt-1"><div className="h-full rounded-full bg-forest" style=${{ width: Math.round(n / maxG * 100) + '%' }}></div></div>
+          </div>`)}</div>`
+          : html`<p className="text-sm italic text-stone-500">Add genres to your books to see your favourites here.</p>`}
+      </section>
+      <section className="card p-5 rise">
+        <h2 className="section-title mb-3">How they felt</h2>
+        <div className="grid grid-cols-2 gap-2">${feel.map(([k, l, n], i) => html`<div key=${k} className=${'rounded-[4px] px-3 py-3 text-center ' + ['bg-[#7A2232] text-[#F6E7D2]', 'bg-[#24402F] text-[#F1E3BE]', 'bg-[#F4E6C8] text-[#7D5F2A]', 'bg-cream text-wood border border-parchment'][i]}>
+          <p className="font-display text-3xl leading-none">${n}</p><p className="font-caps text-[12px] tracking-[.12em] mt-1 opacity-90">${l}</p></div>`)}</div>
+      </section>
+    </div>
+
+    <section className="rise">
+      <${Heading}>Books I've read<//>
+      ${finished.length > 0 && html`<div className="space-y-2 mb-3">
+        <div className="grid grid-cols-3 gap-2">
+          <div className="col-span-2 relative"><span className="absolute left-3 top-1/2 -translate-y-1/2 text-caramel"><${Icon} name="search" size=${16} /></span>
+            <input className="field !pl-9 !py-2 text-sm" value=${jq} onChange=${(e) => setJq(e.target.value)} placeholder="Search finished books" aria-label="Search finished books" /></div>
+          <select className="field !py-2 text-sm" value=${js} onChange=${(e) => setJs(e.target.value)} aria-label="Sort"><option value="date">Newest</option><option value="rating">Rating</option><option value="title">Title</option></select>
+        </div>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+          ${[['all', 'All ' + finished.length], ['fav', 'Favourites'], ['top', '4 stars & up'], ['unrated', 'Not rated yet']].map(([k, l]) => html`<button key=${k} type="button" onClick=${() => setJf(k)} aria-pressed=${jf === k} className=${cx('chip !py-1 text-[13px]', jf === k ? 'chip-on' : 'chip-off')}>${l}</button>`)}
+        </div>
+      </div>`}
+      ${finished.length > 0 && !recent.length ? html`<p className="text-sm italic text-stone-500">No finished books match.</p>` : ''}
+      ${recent.length ? html`<div className="space-y-2.5">${recent.map((b) => html`<button key=${b.id} onClick=${() => onOpen(b.id)} className="card w-full p-3 flex gap-3 items-start text-left hover:shadow-lift transition">
+          <${Cover} book=${b} className="w-11 h-[66px] rounded shadow shrink-0" />
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2"><p className="font-display text-[16px] font-semibold text-ink truncate">${b.favorite ? html`<span className="text-wine mr-1" aria-label="Favourite">♥</span>` : ''}${b.title}</p><span className="text-xs text-wood/70 shrink-0">${fmtDate(b.finishedAt)}</span></div>
+            <div className="flex items-center gap-2 mt-0.5"><${Stars} value=${b.rating} size=${12} />${b.feeling && html`<span className="text-xs text-wood/80">${(FEELINGS.find((f) => f[0] === b.feeling) || [])[1]}</span>`}</div>
+            ${b.notes && html`<p className="text-xs text-wood/80 mt-1 line-clamp-2 italic">“${b.notes}”</p>`}
+          </div>
+        </button>`)}</div>`
+        : finished.length ? '' : html`<p className="text-sm italic text-stone-500">Nothing finished yet — when you mark a book as Finished it appears here.</p>`}
+    </section>
+  </div>`;
+}
+
+/* ───────────────────────── Wishlist / TBR ───────────────────────── */
+function TBR({ books, onOpen, onUpdate, onQuick, onAdd, goDiscover, onRandom, onSuggest, enr, toast, settings, saveSettings, onRemove }) {
+  const [removing, setRemoving] = useState(null);
+  const [view, setView] = useState('wish');
+  const col = 'all';
+  const [q, setQ] = useState('');
+  const [f, setF] = useState('all');
+  const [mood, setMood] = useState('all');
+  const tbrAll = books.filter((b) => b.status === 'tbr');
+  const wish = tbrAll.filter(onWishlist), unread = tbrAll.filter(isOwned);
+  const all = view === 'wish' ? wish : unread;
+  const nq = norm(q);
+  const colDef = null;
+  const list = all.filter((b) => (!nq || norm(b.title + ' ' + b.author).includes(nq)) && (f === 'all' || (f === 'next' ? b.nextUp : b.priority === f)) && (mood === 'all' || moodsOf(b).has(mood))
+      && (col === 'all' || !colDef || inCol(b, col)))
+    .sort((a, b) => (colDef && colDef.ordered ? ((+a.seriesOrder || 999) - (+b.seriesOrder || 999)) : 0) || (b.nextUp - a.nextUp) || (PRIO_RANK[a.priority || ''] - PRIO_RANK[b.priority || '']) || String(b.addedAt).localeCompare(String(a.addedAt)));
+  const prioCls = { high: 'bg-[#7A2232] text-[#F6E7D2] border-[#7A2232]', medium: 'bg-gold/20 text-caramelDark border-gold', low: 'bg-[#24402F]/10 text-[#24402F] border-[#24402F]/40' };
+
+  return html`<div>
+    <div className="flex items-center justify-between gap-3 mb-3">
+      <div><h2 className="section-title">To Be Read</h2><p className="text-sm text-wood/80">${wish.length} on your wishlist · ${unread.length} unread on your shelf</p></div>
+      <div className="flex gap-2 shrink-0">
+        <button className="btn-soft !px-3" onClick=${goDiscover} title="Search books"><${Icon} name="search" size=${15} /><span className="hidden sm:inline">Search</span></button>
+        <button className="btn-primary !px-3" onClick=${() => onAdd({ status: 'tbr', owned: view !== 'wish' })}><${Icon} name="plus" size=${15} /><span className="hidden sm:inline">Add</span></button>
+      </div>
+    </div>
+    <div className="grid grid-cols-2 gap-1 p-1 rounded-[3px] bg-parchment/50 border border-parchment mb-3">
+      ${[['wish', 'Wishlist', wish.length], ['shelf', 'Unread on my shelf', unread.length]].map(([k, l, n]) => html`<button key=${k} type="button" onClick=${() => setView(k)} aria-pressed=${view === k}
+        className=${cx('rounded-[2px] py-2 px-1 font-caps text-[14px] tracking-[.08em] transition', view === k ? (k === 'wish' ? 'bg-wine text-[#F6E7D2] shadow' : 'bg-forest text-[#F1E3BE] shadow') : 'text-wood hover:bg-paper')}>${l} <span className="opacity-70">${n}</span></button>`)}
+    </div>
+    <${DetailsPanel} books=${tbrAll} enr=${enr} />
+    ${all.length === 0
+      ? html`<${Empty} title=${view === 'wish' ? 'Your wishlist is empty' : 'No unread books on your shelf'} text=${view === 'wish' ? 'Find something wonderful in Discover and tap “Wishlist”.' : 'Books you own but haven’t started yet appear here.'}>
+          <button className="btn-primary" onClick=${goDiscover}><${Icon} name="search" size=${15} />Discover books</button><//>`
+      : html`
+        <div className="relative mb-2.5">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-caramel"><${Icon} name="search" size=${16} /></span>
+          <input className="field !pl-9 !py-2 text-sm" value=${q} onChange=${(e) => setQ(e.target.value)} placeholder="Search your TBR" aria-label="Search TBR" />
+        </div>
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          <button type="button" className="btn !py-2.5 bg-[#24402F] text-[#F1E3BE] border-[#24402F] hover:brightness-110" onClick=${() => onRandom(list)}><${Icon} name="shuffle" size=${15} />Random pick</button>
+          <button type="button" className="btn !py-2.5 bg-[#7A2232] text-[#F6E7D2] border-[#7A2232] hover:brightness-110" onClick=${onSuggest}><${Icon} name="wand" size=${15} />What next?</button>
+        </div>
+        <div className="mb-2"><${MoodFilter} value=${mood} onChange=${setMood} /></div>
+        <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1 mb-3 items-center">
+          <span className="label !mb-0 shrink-0 mr-1">Priority</span>
+          ${[['all', 'All'], ['next', 'Next up'], ['high', 'High'], ['medium', 'Medium'], ['low', 'Low']].map(([k, l]) => html`<button key=${k} type="button" onClick=${() => setF(k)} aria-pressed=${f === k} className=${cx('chip !py-1 text-[13px]', f === k ? 'chip-on' : 'chip-off')}>${l}</button>`)}
+        </div>
+        ${list.length === 0 ? html`<p className="text-sm italic text-stone-500 py-6 text-center">No books match.</p>` : html`<div className="space-y-2.5">${list.map((b) => html`<article key=${b.id} className=${cx('card p-3 flex gap-3 rise', b.nextUp && 'ring-2 ring-gold/70')}>
+          <button onClick=${() => onOpen(b.id)} className="shrink-0" aria-label=${'Open ' + b.title}><${Cover} book=${b} className="w-[60px] h-[90px] rounded-md shadow" /></button>
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0"><h3 lang="de" style=${{ hyphens: 'auto', WebkitHyphens: 'auto' }} className="font-display text-[16px] leading-snug text-ink line-clamp-2 break-words">${b.title}</h3><p className="text-xs text-wood/80 truncate">${b.author || 'Unknown author'}${b.pages ? ' · ' + b.pages + ' p.' : ''}${isFitzek(b) && b.seriesOrder ? ' · Fitzek No. ' + b.seriesOrder : ''}</p><div className="mt-1"><${MoodTags} b=${b} /></div></div>
+              <button type="button" onClick=${() => onUpdate(b.id, { nextUp: !b.nextUp })} aria-pressed=${!!b.nextUp} title="Mark as next up"
+                className=${cx('chip !px-2.5 !py-1 text-xs shrink-0', b.nextUp ? 'bg-gold text-ink border-gold' : 'chip-off')}><${Icon} name="zap" size=${12} fill=${b.nextUp ? 'currentColor' : 'none'} />Next up</button>
+              <button type="button" onClick=${() => setRemoving(removing === b.id ? null : b.id)} aria-label=${'Remove ' + b.title} title="Remove"
+                className=${cx('shrink-0 w-8 h-8 -mt-1 -mr-1 grid place-items-center rounded-full transition', removing === b.id ? 'bg-wine text-white' : 'text-wood/60 hover:text-wine hover:bg-wine/10')}><${Icon} name="x" size=${17} /></button>
+            </div>
+            <div className="flex flex-wrap items-center gap-1">
+              ${PRIOS.map(([k, l]) => html`<button key=${k} type="button" onClick=${() => onUpdate(b.id, { priority: b.priority === k ? '' : k })} aria-pressed=${b.priority === k}
+                className=${cx('font-caps text-[12px] tracking-[.1em] px-2 py-0.5 border transition', b.priority === k ? prioCls[k] : 'border-parchment text-wood/70 hover:border-caramel')}>${l}</button>`)}
+            </div>
+            <div className="flex flex-wrap gap-1.5 mt-auto">
+              ${view === 'wish' && html`<button type="button" className="btn !px-3 !py-1.5 text-xs bg-wine text-[#F6E7D2] border-wine hover:brightness-110" title="Mark as bought" onClick=${() => { onUpdate(b.id, { owned: true }); toast('“' + b.title + '” is now on your shelf'); }}><${Icon} name="check" size=${12} />Bought</button>`}
+              <button type="button" className="btn-primary !px-3 !py-1.5 text-xs" onClick=${() => onQuick(b, 'reading')}><${Icon} name="play" size=${11} />Start reading</button>
+              <button type="button" className="btn-soft !px-3 !py-1.5 text-xs" onClick=${() => onQuick(b, 'finished')}>Finished</button>
+              <button type="button" className="btn-ghost !px-3 !py-1.5 text-xs" onClick=${() => onOpen(b.id)}>Details</button>
+            </div>
+            ${removing === b.id && html`<div className="mt-1 flex flex-wrap items-center gap-1.5 border-t border-parchment pt-2 fade-in">
+              <span className="text-sm text-wine mr-1">Remove this book?</span>
+              ${colDef && html`<button type="button" className="btn-soft !py-1 !px-2.5 text-xs" onClick=${() => { onUpdate(b.id, (cur) => toggleCol(cur, colDef.id)); setRemoving(null); toast('Removed from ' + colDef.name); }}>From ${colDef.name} only</button>`}
+              <button type="button" className="btn !py-1 !px-2.5 text-xs bg-wine text-white border-wine" onClick=${() => { setRemoving(null); onRemove(b); }}><${Icon} name="trash" size=${12} />Delete book</button>
+              <button type="button" className="btn-ghost !py-1 !px-2 text-xs" onClick=${() => setRemoving(null)}>Keep</button>
+            </div>`}
+          </div>
+        </article>`)}</div>`}`}
+  </div>`;
+}
+
+/* ───────────────────────── Detail sheet ───────────────────────── */
+function DetailSheet({ book, books, onClose, onUpdate, onDuplicate, onDelete, toast, cols = [] }) {
+  const [editing, setEditing] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [confirmDel, setConfirmDel] = useState(false);
+  const timer = useRef(null);
+  const id = book && book.id;
+  useEffect(() => { setEditing(false); setConfirmDel(false); setNotes(book ? book.notes || '' : ''); clearTimeout(timer.current); }, [id]);
+  const flush = () => { clearTimeout(timer.current); if (book && notes !== (book.notes || '')) onUpdate(book.id, { notes }); };
+  const close = useCallback(() => { flush(); onClose(); }, [book, notes, onClose]);
+  const onNotes = (v) => { setNotes(v); clearTimeout(timer.current); timer.current = setTimeout(() => onUpdate(id, { notes: v }), 800); };
+  const onCover = async (e) => {
+    const file = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    try { onUpdate(id, { cover: await fileToCover(file) }); toast('Cover updated'); } catch (x) { toast('That image could not be read.', 'error'); }
+  };
+  const b = book;
+  return html`<${Sheet} open=${!!b} onClose=${close} title=${editing ? 'Edit details' : (b ? STATUS[b.status].label : '')} wide>
+    ${b && (editing
+      ? html`<${BookForm} initial=${b} submitLabel="Save changes" onCancel=${() => setEditing(false)}
+          onSubmit=${(v) => { onUpdate(b.id, { title: v.title, author: v.author, year: v.year, pages: v.pages, language: v.language, genres: v.genres, cover: v.cover, description: v.description, descriptionSource: v.description === (b.description || '') ? b.descriptionSource : (v.description ? 'manual' : '') }); setEditing(false); toast('Saved'); }} />`
+      : html`<div className="space-y-6">
+        <div className="flex gap-4 sm:gap-5">
+          <div className="shrink-0">
+            <${Cover} book=${b} big=${true} className="w-28 h-[168px] sm:w-40 sm:h-60 rounded-lg shadow-lift" />
+            <div className="flex flex-col gap-1 mt-2">
+              <label className="text-xs font-semibold text-forest hover:underline cursor-pointer text-center"><input type="file" accept="image/*" className="sr-only" onChange=${onCover} />${b.cover ? 'Change cover' : 'Upload cover'}</label>
+              ${b.cover && html`<button type="button" className="text-xs text-wood/70 hover:underline" onClick=${() => onUpdate(b.id, { cover: '' })}>Remove cover</button>`}
+            </div>
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-start justify-between gap-2">
+              <h2 className="font-display font-semibold text-2xl sm:text-3xl leading-tight text-ink">${b.title}</h2>
+              <button type="button" onClick=${() => onUpdate(b.id, { favorite: !b.favorite })} aria-pressed=${!!b.favorite} aria-label="Favorite"
+                className=${cx('shrink-0 w-10 h-10 grid place-items-center rounded-full border transition', b.favorite ? 'bg-rouge/10 border-rouge/40 text-rouge' : 'border-parchment text-stone-400 hover:text-rose-600')}>
+                <${Icon} name="heart" size=${19} fill=${b.favorite ? 'currentColor' : 'none'} /></button>
+            </div>
+            <p className="text-wood mt-1">${b.author || 'Unknown author'}</p>
+            <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1.5 text-sm">
+              ${[['Published', b.year], ['Pages', b.pages], ['Language', b.language], ['Added', fmtDate(b.addedAt)], b.startedAt && ['Started', fmtDate(b.startedAt)], b.finishedAt && ['Finished', fmtDate(b.finishedAt)]].filter(Boolean).map(([k, v]) => html`<div key=${k}><dt className="text-[11px] uppercase tracking-wider text-caramelDark font-semibold">${k}</dt><dd className="text-ink">${v || '—'}</dd></div>`)}
+            </dl>
+            <div className="mt-3"><${GenreChips} genres=${b.genres} max=${6} /></div>
+          </div>
+        </div>
+
+        <div><p className="label">Shelf</p><${StatusPicker} value=${b.status} onChange=${(s) => { onUpdate(b.id, (cur) => withStatus(cur, s)); toast('Moved to ' + STATUS[s].label); }} /></div>
+
+        ${b.status === 'tbr' && html`<div className="flex flex-wrap items-center gap-3 border border-parchment bg-paper px-3 py-2.5">
+          <span className="text-[15px] text-ink/85 flex-1">${onWishlist(b) ? html`On your <b className="text-wine">wishlist</b>.` : html`On <b className="text-forest">your shelf</b>, not started yet.`}</span>
+          ${onWishlist(b)
+            ? html`<button type="button" className="btn !py-1.5 bg-wine text-[#F6E7D2] border-wine hover:brightness-110" onClick=${() => { onUpdate(b.id, { owned: true }); toast('Marked as bought'); }}><${Icon} name="check" size=${14} />Bought it</button>`
+            : html`<button type="button" className="btn-ghost !py-1.5" onClick=${() => { onUpdate(b.id, { owned: false }); toast('Moved back to your wishlist'); }}>Back to wishlist</button>`}
+        </div>`}
+        ${b.status === 'tbr' && html`<div className="flex flex-wrap items-center gap-2">
+          <span className="label !mb-0 mr-1">Priority</span>
+          ${PRIOS.map(([k, l]) => html`<button key=${k} type="button" onClick=${() => onUpdate(b.id, { priority: b.priority === k ? '' : k })} className=${cx('chip !py-1 text-[13px]', b.priority === k ? 'chip-on' : 'chip-off')} aria-pressed=${b.priority === k}>${l}</button>`)}
+          <button type="button" onClick=${() => onUpdate(b.id, { nextUp: !b.nextUp })} aria-pressed=${!!b.nextUp} className=${cx('chip !py-1 text-[13px]', b.nextUp ? 'bg-gold text-ink border-gold' : 'chip-off')}><${Icon} name="zap" size=${13} fill=${b.nextUp ? 'currentColor' : 'none'} />Next up</button>
+        </div>`}
+
+        ${b.status === 'reading' && html`<div className="card p-4">
+          <p className="label">Progress</p>
+          <div className="flex items-center gap-2 text-sm">
+            <span>Page</span>
+            <input key=${b.id + ':' + b.currentPage} type="number" min="0" className="field !w-24 !py-1.5" defaultValue=${b.currentPage}
+              onBlur=${(e) => { const v = e.target.value; if (v !== String(b.currentPage || '')) onUpdate(b.id, { currentPage: v }); }} onKeyDown=${(e) => { if (e.key === 'Enter') e.target.blur(); }} aria-label="Current page" />
+            <span>of</span>
+            <input key=${b.id + ':p:' + b.pages} type="number" min="0" className="field !w-24 !py-1.5" defaultValue=${b.pages}
+              onBlur=${(e) => { const v = e.target.value; if (v !== String(b.pages || '')) onUpdate(b.id, { pages: v }); }} onKeyDown=${(e) => { if (e.key === 'Enter') e.target.blur(); }} aria-label="Total pages" />
+          </div>
+          ${+b.pages > 0 && html`<div className="mt-3 h-2 rounded-full bg-parchment overflow-hidden"><div className="h-full bg-forest transition-all" style=${{ width: Math.min(100, Math.round((+b.currentPage || 0) / +b.pages * 100)) + '%' }}></div></div>`}
+        </div>`}
+
+        <div>
+          <p className="label">Reading mood</p>
+          <div className="flex flex-wrap gap-1.5">
+            ${MOODS.map(([k, l]) => { const on = (b.moods || []).includes(k) || (k === 'quick' && isShort(b)); return html`<button key=${k} type="button" aria-pressed=${on}
+              onClick=${() => onUpdate(b.id, (cur) => { const m = new Set(cur.moods || []); if (m.has(k)) m.delete(k); else m.add(k); return { ...cur, moods: [...m] }; })}
+              className=${cx('px-2.5 py-1 font-caps text-[13px] tracking-[.08em] border transition', on ? MOOD_CLS[k] : 'bg-paper text-wood/70 border-[#D9CBAE] hover:border-gold')}>${l}</button>`; })}
+          </div>
+
+          ${isFitzek(b) && b.seriesOrder && html`<p className="text-[14px] text-ink/75 mt-2">Fitzek · No. ${b.seriesOrder} in publication order${b.seriesPrev ? html`. Read after <b>${(books.find((x) => x.id === b.seriesPrev) || { title: 'the previous book' }).title}</b>.` : '.'}</p>`}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div><p className="label">Your rating</p><${Stars} value=${b.rating} size=${26} onChange=${(n) => onUpdate(b.id, { rating: n })} /></div>
+          ${b.status === 'finished' && html`<div><p className="label">Finished on</p><input type="date" className="field !py-2" value=${b.finishedAt || ''} onChange=${(e) => onUpdate(b.id, { finishedAt: e.target.value })} /></div>`}
+        </div>
+        <div><p className="label">How did it feel?</p>
+          <div className="flex flex-wrap gap-2">${FEELINGS.map(([k, l]) => html`<button key=${k} type="button" onClick=${() => onUpdate(b.id, { feeling: b.feeling === k ? '' : k })} aria-pressed=${b.feeling === k} className=${cx('chip', b.feeling === k ? 'chip-on' : 'chip-off')}>${l}</button>`)}</div>
+        </div>
+
+        <div><p className="label">Summary</p><${Summary} text=${b.description} source=${b.descriptionSource} /></div>
+
+        <div><p className="label">My notes</p>
+          <textarea className="field min-h-[120px] leading-relaxed" value=${notes} onChange=${(e) => onNotes(e.target.value)} onBlur=${flush} placeholder="Thoughts, favourite quotes, how it made you feel…"></textarea>
+          <p className="text-[11px] text-wood/60 mt-1">Saves automatically.</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 pt-2 border-t border-parchment">
+          <button type="button" className="btn-soft" onClick=${() => setEditing(true)}><${Icon} name="pencil" size=${15} />Edit details</button>
+          <button type="button" className="btn-soft" onClick=${() => { flush(); onDuplicate(b); }}><${Icon} name="copy" size=${15} />Duplicate</button>
+          ${confirmDel
+            ? html`<div className="flex items-center gap-2 ml-auto rounded-full bg-rose-50 border border-rose-200 pl-3 pr-1 py-1">
+                <span className="text-sm text-rose-800">Delete this book?</span>
+                <button type="button" className="btn !py-1 !px-3 bg-rose-700 text-white hover:bg-rose-800" onClick=${() => { clearTimeout(timer.current); onDelete(b); }}>Delete</button>
+                <button type="button" className="btn-ghost !py-1 !px-2" onClick=${() => setConfirmDel(false)}>Keep</button></div>`
+            : html`<button type="button" className="btn-ghost ml-auto text-rose-700 hover:!bg-rose-50" onClick=${() => setConfirmDel(true)}><${Icon} name="trash" size=${15} />Delete</button>`}
+        </div>
+      </div>`)}
+  <//>`;
+}
+
+/* ───────────────────────── Backup sheet ───────────────────────── */
+function BackupSheet({ open, onClose, lib, toast, enr }) {
+  const [dl, setDl] = useState(null);
+  const [mode, setMode] = useState('merge');
+  const [paste, setPaste] = useState('');
+  const [showJson, setShowJson] = useState(false);
+  useEffect(() => { if (open) { setShowJson(false); getCap('downloads').then(setDl); } }, [open]);
+  const json = () => JSON.stringify({ app: 'book-library', version: 1, exportedAt: new Date().toISOString(), settings: lib.settings, books: lib.books }, null, 2);
+  const download = async () => {
+    try { const r = await dl.save({ filename: 'book-library-' + todayISO() + '.json', data: json() }); if (r && r.status === 'saved') toast('Backup saved'); }
+    catch (e) { if (e && e.code === 'declined') return; toast('Download isn’t available here — use Copy instead.', 'error'); setShowJson(true); }
+  };
+  const saveLocalFile = async () => {
+    const name = 'book-library-' + todayISO() + '.json';
+    const blob = new Blob([json()], { type: 'application/json' });
+    try {
+      const file = new File([blob], name, { type: 'application/json' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'Book Library backup' }); return; }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    try {
+      const url = URL.createObjectURL(blob); const a = document.createElement('a');
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000); toast('Backup saved');
+    } catch (e) { setShowJson(true); toast('Couldn’t save the file — copy the text below instead.', 'error'); }
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(json()); toast('Backup copied to clipboard'); }
+    catch (e) { setShowJson(true); toast('Couldn’t copy automatically — select the text below.', 'error'); }
+  };
+  const doImport = (text) => {
+    try {
+      const data = JSON.parse(text);
+      const arr = Array.isArray(data) ? data : data && data.books;
+      if (!Array.isArray(arr)) throw new Error('shape');
+      const n = lib.importBooks(arr, mode, data && data.settings);
+      toast('Imported ' + n + ' ' + (n === 1 ? 'book' : 'books')); setPaste(''); onClose();
+    } catch (e) { toast('That doesn’t look like a Book Library backup.', 'error'); }
+  };
+  const onFile = (e) => {
+    const file = e.target.files && e.target.files[0]; e.target.value = '';
+    if (!file) return;
+    const r = new FileReader(); r.onload = () => doImport(String(r.result || '')); r.onerror = () => toast('Couldn’t read that file.', 'error'); r.readAsText(file);
+  };
+  const syncInfo = {
+    cloud: ['cloud', 'Saved to your Claude account', 'Your library is stored privately with this page and follows you to other devices where you open it. A copy is also kept in this browser.'],
+    connecting: ['cloud', 'Connecting…', 'Your library is saved in this browser while the connection is set up.'],
+    slow: ['wifiOff', 'Still connecting', 'Changes are kept in this browser for now and will sync when the connection is back.'],
+    local: ['wifiOff', 'Saved in this browser only', 'Your library lives in this browser’s storage. Export a backup regularly so nothing gets lost.'],
+  }[lib.sync];
+  return html`<${Sheet} open=${open} onClose=${onClose} title="Backup & storage">
+    <div className="space-y-6">
+      <div className="rounded-[3px] bg-parchment/40 border border-parchment p-4 flex gap-3">
+        <span className="text-forest mt-0.5"><${Icon} name=${syncInfo[0]} size=${20} /></span>
+        <div><p className="font-semibold text-ink">${syncInfo[1]}</p><p className="text-sm text-wood/80 mt-0.5">${syncInfo[2]}</p></div>
+      </div>
+      ${enr && html`<section>
+        <p className="label">Book details</p>
+        <p className="text-sm text-wood/80 mb-3">Covers, years, pages and summaries come only from Open Library and fill empty fields — nothing you entered is overwritten.${enr.st.phase === 'unreachable' ? ' Open Library is not reachable right now — are you offline?' : ''}</p>
+        <button type="button" className="btn-soft" disabled=${enr.st.phase === 'running'} onClick=${() => { enr.setHidden(false); enr.run(true); }}><${Icon} name="download" size=${15} />${enr.st.phase === 'running' ? 'Loading… ' + enr.st.done + ' / ' + enr.st.total : 'Load missing details'}</button>
+      </section>`}
+      <section>
+        <p className="label">Export</p>
+        <p className="text-sm text-wood/80 mb-3">A JSON file with all ${lib.books.length} books, ratings, notes and settings — ready to import here again or into a PWA later.</p>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn-primary" onClick=${dl ? download : saveLocalFile}><${Icon} name="download" size=${15} />Save backup file</button>
+          <button type="button" className="btn-soft" onClick=${copy}><${Icon} name="copy" size=${15} />Copy JSON</button>
+        </div>
+        ${showJson && html`<textarea readOnly className="field mt-3 h-40 font-mono text-xs" value=${json()} onFocus=${(e) => e.target.select()}></textarea>`}
+      </section>
+      <section>
+        <p className="label">Import</p>
+        <div className="grid grid-cols-2 gap-1 p-1 rounded-[3px] bg-parchment/50 border border-parchment mb-3">
+          ${[['merge', 'Merge with library'], ['replace', 'Replace library']].map(([k, l]) => html`<button key=${k} type="button" onClick=${() => setMode(k)} aria-pressed=${mode === k} className=${cx('rounded-[2px] py-2 font-caps text-[14px] tracking-[.1em] transition', mode === k ? 'bg-forest text-[#F1E3BE] shadow' : 'text-wood hover:bg-paper')}>${l}</button>`)}
+        </div>
+        ${mode === 'replace' && html`<p className="text-sm text-rose-800 bg-rose-50 border border-rose-200 rounded-[2px] px-3 py-2 mb-3">Replace removes every book that isn’t in the backup. Export first if you’re unsure.</p>`}
+        <label className="btn-soft cursor-pointer"><${Icon} name="upload" size=${15} />Choose JSON file<input type="file" accept="application/json,.json,text/plain" className="sr-only" onChange=${onFile} /></label>
+        <p className="text-xs text-wood/70 mt-3 mb-1.5">…or paste a backup:</p>
+        <textarea className="field h-24 font-mono text-xs" value=${paste} onChange=${(e) => setPaste(e.target.value)} placeholder='{"app":"book-library","books":[…]}'></textarea>
+        <button type="button" className="btn-primary mt-2" disabled=${!paste.trim()} onClick=${() => doImport(paste)}>Import pasted backup</button>
+      </section>
+    </div>
+  <//>`;
+}
+
+/* ───────────────────────── Add sheet ───────────────────────── */
+function AddSheet({ open, initial, onClose, onSubmit, goSearch }) {
+  return html`<${Sheet} open=${open} onClose=${onClose} title="Add a book">
+    <button type="button" onClick=${goSearch} className="w-full card p-3.5 flex items-center gap-3 mb-5 text-left hover:shadow-lift transition">
+      <span className="w-10 h-10 grid place-items-center rounded-full bg-forest text-cream"><${Icon} name="search" size=${18} /></span>
+      <span className="flex-1"><b className="block text-ink">Search for a book</b><span className="text-sm text-wood/80">Find title, author and summary automatically</span></span>
+      <${Icon} name="arrowRight" className="text-caramel" />
+    </button>
+    <p className="label">Or add it by hand</p>
+    <${BookForm} key=${open ? (initial && initial.title) || 'new' : 'closed'} initial=${initial} showStatus=${true} submitLabel="Add to library" onCancel=${onClose} onSubmit=${onSubmit} />
+  <//>`;
+}
+
+/* ───────────────────────── App shell ───────────────────────── */
+const TABS = [
+  { id: 'discover', label: 'Discover', long: 'Discover', icon: 'compass' },
+  { id: 'journal', label: 'Journal', long: 'Reading Journal', icon: 'bookOpen' },
+  { id: 'tbr', label: 'To Be Read', long: 'To Be Read', icon: 'bookmark' },
+];
+
+function App() {
+  const [toastMsg, setToastMsg] = useState(null);
+  const toast = useCallback((msg, kind) => setToastMsg({ msg, kind: kind || 'ok', k: Date.now() }), []);
+  useEffect(() => { if (!toastMsg) return; const t = setTimeout(() => setToastMsg(null), 2800); return () => clearTimeout(t); }, [toastMsg]);
+  const lib = useLibrary(toast);
+  const { books } = lib;
+
+  const validTab = (v) => TABS.some((t) => t.id === v);
+  const [tab, setTab] = useState(() => { const h = location.hash.slice(1); return validTab(h) ? h : (h === 'library' ? 'journal' : 'tbr'); });
+  useEffect(() => { const h = () => { const v = location.hash.slice(1); if (validTab(v)) setTab(v); }; window.addEventListener('hashchange', h); return () => window.removeEventListener('hashchange', h); }, []);
+  const go = (id) => { setTab(id); try { if (location.hash.slice(1) !== id) location.hash = id; } catch (e) {} window.scrollTo({ top: 0, behavior: 'smooth' }); };
+
+  const [detailId, setDetailId] = useState(null);
+  const [add, setAdd] = useState(null);
+  const [backup, setBackup] = useState(false);
+  const [focusKey, setFocusKey] = useState(0);
+  const detail = books.find((b) => b.id === detailId) || null;
+  const enr = useEnrichment(lib);
+  const autoRan = useRef(false);
+  useEffect(() => {
+    if (autoRan.current || lib.sync === 'connecting') return;
+    if (!books.some((b) => needsDetails(b, false))) return;
+    autoRan.current = true; enr.run(false);
+  }, [lib.sync, books.length]);
+  const [pick, setPick] = useState(null);
+  const randomPick = (cands) => {
+    const pool = cands && cands.length ? cands : lib.getBooks().filter((b) => b.status === 'tbr');
+    if (!pool.length) { toast('Your TBR is empty'); return; }
+    let i = Math.floor(Math.random() * pool.length);
+    if (pool.length > 1 && pick && pool[i].id === pick.book.id) i = (i + 1) % pool.length;
+    setPick({ kind: 'random', book: pool[i], pool });
+  };
+  const suggest = () => {
+    const r = suggestNext(lib.getBooks(), pick && pick.kind === 'suggest' ? pick.book.id : null);
+    if (!r) { toast('Add books to your TBR first'); return; }
+    setPick({ kind: 'suggest', ...r });
+  };
+
+  const openDetail = useCallback((id) => setDetailId(id), []);
+  const closeDetail = useCallback(() => setDetailId(null), []);
+  const addFromResult = async (r, status, owned) => {
+    const b = withStatus(makeBook({
+      title: r.title, author: r.author, year: r.year, genres: r.genres || [], pages: r.pages || '', language: r.language || '',
+      coverUrl: r.coverUrl || '', olKey: r.olKey || '', description: r.description || '',
+      descriptionSource: r.description ? (r.source === 'claude' ? 'claude' : 'openlibrary') : '',
+      owned: status !== 'tbr' || !!owned,
+    }), status);
+    lib.upsert(b);
+    toast(status === 'tbr' ? (owned ? 'Added to To Be Read · on your shelf' : 'Added to To Be Read') : 'Added to ' + STATUS[status].label);
+    if (r.source === 'openlibrary' && r.description == null && r.olKey) {
+      const d = await fetchOLDescription(r.olKey);
+      if (d) lib.update(b.id, (cur) => (cur.description ? cur : { ...cur, description: d, descriptionSource: 'openlibrary' }));
+    }
+  };
+  const onQuick = (b, to) => {
+    lib.update(b.id, (cur) => withStatus(cur, to));
+    toast('Moved to ' + STATUS[to].label);
+    if (to === 'finished') setDetailId(b.id);
+  };
+  const onManualSubmit = (v) => {
+    const b = withStatus(makeBook({ ...v, descriptionSource: v.description ? 'manual' : '' }), v.status || 'tbr');
+    lib.upsert(b); setAdd(null); toast('Added “' + b.title + '”');
+  };
+  const onDuplicate = (b) => {
+    const c = { ...b, id: newId(), title: b.title + ' (copy)', addedAt: new Date().toISOString(), olKey: b.olKey };
+    lib.upsert(c); setDetailId(c.id); toast('Duplicated');
+  };
+  const onDelete = (b) => { setDetailId(null); lib.remove(b.id); toast('Removed “' + b.title + '”'); };
+  const goSearch = () => { setAdd(null); go('discover'); setFocusKey((k) => k + 1); };
+
+  const reading = books.filter((b) => b.status === 'reading').length;
+  const finished = books.filter((b) => b.status === 'finished').length;
+
+  const navBtn = (t, mobile) => html`<button key=${t.id} type="button" onClick=${() => go(t.id)} aria-current=${tab === t.id ? 'page' : undefined}
+    className=${mobile
+      ? cx('relative flex-1 flex flex-col items-center gap-1 pt-2.5 pb-1.5 font-caps text-[12px] tracking-[.12em] transition', tab === t.id ? 'text-forest' : 'text-wood/60')
+      : cx('relative flex items-center gap-2 px-5 py-2 font-caps text-[15px] tracking-[.16em] transition', tab === t.id ? 'text-forest' : 'text-wood/70 hover:text-forest')}>
+    ${tab === t.id && html`<span className=${mobile ? 'absolute top-0 left-1/4 right-1/4 h-[2px] bg-wine' : 'absolute -bottom-[13px] left-4 right-4 h-[2px] bg-wine'}></span>`}
+    <${Icon} name=${t.icon} size=${mobile ? 19 : 15} stroke=${tab === t.id ? 1.9 : 1.5} />
+    ${mobile ? t.label : t.long}
+  </button>`;
+
+  return html`<div className="min-h-screen pb-[calc(96px+env(safe-area-inset-bottom))] md:pb-16">
+    <header className="relative overflow-hidden pt-[env(safe-area-inset-top)] bg-[#FBF8F1] border-b border-parchment shadow-card">
+      <svg className="absolute inset-x-0 top-0 w-full h-[150px] text-gold pointer-events-none" viewBox="0 0 1200 150" preserveAspectRatio="none" aria-hidden="true" fill="none" stroke="currentColor">
+        ${[0, 1, 2, 3, 4, 5].map((i) => html`<path key=${i} d=${'M' + (i * 200) + ' 150 V70 Q' + (i * 200 + 100) + ' -10 ' + (i * 200 + 200) + ' 70 V150'} strokeOpacity=".22" strokeWidth="1" />`)}
+        ${[0, 1, 2, 3, 4, 5].map((i) => html`<path key=${'b' + i} d=${'M' + (i * 200 + 14) + ' 150 V76 Q' + (i * 200 + 100) + ' 6 ' + (i * 200 + 186) + ' 76 V150'} strokeOpacity=".12" strokeWidth="1" />`)}
+      </svg>
+      <div className="absolute inset-0 bg-[radial-gradient(700px_220px_at_50%_0%,rgba(255,244,214,.9),transparent_70%)] pointer-events-none"></div>
+      <div className="relative max-w-5xl mx-auto px-5 sm:px-6 pt-8 pb-5 text-center">
+        <button type="button" onClick=${() => setBackup(true)} className="absolute right-4 sm:right-6 top-5 w-10 h-10 grid place-items-center border border-gold/60 text-forest hover:bg-gold/10 transition" aria-label="Backup & storage" title="Backup & storage">
+          <${Icon} name="archive" size=${17} stroke=${1.6} />
+        </button>
+        <h1 className="font-display font-semibold text-[27px] min-[400px]:text-[31px] sm:text-[52px] tracking-[.1em] sm:tracking-[.16em] text-forest leading-none px-10 sm:px-0 whitespace-nowrap">BOOK LIBRARY</h1>
+        <${Ornament} className="mx-auto mt-3" />
+        <p className="font-display italic text-[20px] sm:text-[22px] text-wine mt-2">Your enchanted reading library</p>
+        <div className="flex flex-wrap justify-center gap-x-4 gap-y-1 mt-4 font-caps text-[13px] tracking-[.1em] text-wood">
+          <span><b className="font-display text-[19px] text-wine tracking-normal">${books.filter((b) => b.status === 'tbr').length}</b> to be read</span>
+          <span><b className="font-display text-[19px] text-forest tracking-normal">${reading}</b> reading</span>
+          <span><b className="font-display text-[19px] text-forest tracking-normal">${finished}</b> finished</span>
+        </div>
+        <nav className="hidden md:flex justify-center gap-1 mt-5 border-t border-parchment pt-3" aria-label="Sections">${TABS.map((t) => navBtn(t, false))}</nav>
+      </div>
+      <div className="gilt-rule mx-0"></div>
+    </header>
+
+    <main className="max-w-5xl mx-auto px-4 sm:px-6 pt-5">
+      <section hidden=${tab !== 'discover'}><${Discover} books=${books} onAdd=${addFromResult} onOpen=${openDetail} onManual=${(init) => setAdd(init || {})} focusKey=${focusKey} onSuggest=${suggest} onRandom=${randomPick} /></section>
+      <section hidden=${tab !== 'journal'}><${Journal} books=${books} settings=${lib.settings} saveSettings=${lib.saveSettings} onOpen=${openDetail} onUpdate=${lib.update} /></section>
+      <section hidden=${tab !== 'tbr'}><${TBR} books=${books} onOpen=${openDetail} onUpdate=${lib.update} onQuick=${onQuick} onAdd=${(init) => setAdd(init || {})} goDiscover=${goSearch} onRandom=${randomPick} onSuggest=${suggest} enr=${enr} toast=${toast} settings=${lib.settings} saveSettings=${lib.saveSettings} onRemove=${onDelete} /></section>
+    </main>
+
+    <button type="button" onClick=${() => setAdd(tab === 'journal' ? { status: 'finished', owned: true } : { status: 'tbr', owned: false })} aria-label="Add a book"
+      className="fixed z-30 right-4 sm:right-6 bottom-[calc(84px+env(safe-area-inset-bottom))] md:bottom-8 w-14 h-14 rounded-full bg-forest text-[#EAD59A] shadow-lift grid place-items-center hover:scale-105 active:scale-95 transition border border-gold ring-4 ring-[#FBF8F1]">
+      <${Icon} name="plus" size=${26} stroke=${2.4} />
+    </button>
+
+    <nav className="md:hidden fixed z-30 bottom-0 inset-x-0 bg-[#FBF8F1]/95 backdrop-blur-md border-t border-gold/40 px-2 pb-[calc(6px+env(safe-area-inset-bottom))] flex" aria-label="Sections">
+      ${TABS.map((t) => navBtn(t, true))}
+    </nav>
+
+    <${DetailSheet} book=${detail} books=${books} onClose=${closeDetail} onUpdate=${lib.update} onDuplicate=${onDuplicate} onDelete=${onDelete} toast=${toast} />
+    <${AddSheet} open=${!!add} initial=${add} onClose=${() => setAdd(null)} onSubmit=${onManualSubmit} goSearch=${goSearch} />
+    <${PickSheet} pick=${pick} onClose=${() => setPick(null)} onAnother=${() => (pick.kind === 'random' ? randomPick(pick.pool) : suggest())}
+      onStart=${(b) => { setPick(null); onQuick(b, 'reading'); }} onOpen=${(id) => { setPick(null); setDetailId(id); }} />
+    <${BackupSheet} open=${backup} onClose=${() => setBackup(false)} lib=${lib} toast=${toast} enr=${enr} />
+
+    ${toastMsg && html`<div key=${toastMsg.k} role="status" className=${cx('fixed z-[60] left-1/2 -translate-x-1/2 bottom-[calc(150px+env(safe-area-inset-bottom))] md:bottom-28 max-w-[90vw] px-5 py-2.5 shadow-lift font-display text-[17px] italic rise',
+      toastMsg.kind === 'error' ? 'bg-[#7A2232] text-white border border-gold/60' : 'bg-forest text-[#F1E3BE] border border-gold/70')}>${toastMsg.msg}</div>`}
+  </div>`;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(html`<${App} />`);
+})();
+</script>
+<script>
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
+}
+try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+</script>
+</body>
+</html>
